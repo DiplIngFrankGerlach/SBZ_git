@@ -1,0 +1,14 @@
+1. Das Programm "Sichere Befehlszeile" ist kostenlos zur nichtkommerziellen
+Nutzung. Eine kommerzielle Nutzung erfordert eine kostenpflichtige 
+Lizenz von Dipl. Ing. Frank Gerlach.
+
+2. Das Programm befindet sich noch in einer frühen Entwicklungsphase.
+Programmierfehler sind zu erwarten. Der Nutzer wird keine Schadenersatz-
+forderungen aus Programmfehlern an Frank Gerlach stellen.
+
+3. Programmfehler können unter frankgerlach.tai@gmx.de gemeldet
+werden.
+
+
+
+
