@@ -1,0 +1,34 @@
+#this file has been generated automatically by the
+#sappeur compiler. If you want to change anything,
+#please rename this file. It will be overwritten on the
+#next sappeur compiler run.
+
+OBJECTS=placementNew.o staticData.o determStackMemory.o suchoi.o TCP.o FranksFeistel2.o String.o TcpServer.o SchluesselWerkzeuge.o AppMain.o GesicherteVerbindung.o StringUtil.o System.o generative_impls.o mapping.o main.o threadFunctions.o
+TCP.o:TCP.cpp
+FranksFeistel2.o:FranksFeistel2.cpp
+String.o:String.cpp
+TcpServer.o:TcpServer.cpp
+SchluesselWerkzeuge.o:SchluesselWerkzeuge.cpp
+AppMain.o:AppMain.cpp
+GesicherteVerbindung.o:GesicherteVerbindung.cpp
+StringUtil.o:StringUtil.cpp
+System.o:System.cpp
+
+
+$(OBJECTS):header.h
+header.h:mapping.h
+CC = g++
+VPATH=/home/frank/Sappeur30/haupt//cppMapping
+
+INCLUDE=-I/usr/include/unicode -I/home/frank/Sappeur30/haupt//cppMapping -I. -I.. 
+
+LDLIBS=-lstdc++ -lm
+.SUFFIXES: .o .cpp
+OPT=-g
+MISC_OPT=-DSPR_USE_PTHREAD_MUTEX_LOCKS=1 -DLINUX_SAPPEUR=1 -DSPR_DEBUG=1 -DSPR_PTHREAD=1 -pthread
+.cpp.o:
+	$(CC) $(OPT) $(MISC_OPT) -DGCC_X86 $(INCLUDE) -c $<
+all:$(OBJECTS)
+	$(CC) $(OPT) $(MISC_OPT) -o sbz $^ $(LDLIBS)
+clean:
+	rm *.o sprprog.exe

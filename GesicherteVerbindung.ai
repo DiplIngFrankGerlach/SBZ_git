@@ -1,0 +1,285 @@
+
+
+
+
+GesicherteVerbindung::GesicherteVerbindung(&String_16 schluessel_e,BufferedSocket* bsocket_e,int pufferGroessen)
+{
+   logLevel = 0;
+   
+   schluessel.assign(schluessel_e);
+   var FranksFeistel2 ff(8);
+   ff.setzeSchluessel(schluessel);
+
+
+   sendeBereit= 0;
+   inline_cpp[[
+     const char* random_dev = "/dev/urandom";
+     const int num_bytes = 32; // 256 bits
+
+     // Open /dev/urandom
+     ifstream urandom(random_dev, ios::in|ios::binary);
+     if (!urandom) {
+         cerr << "Konnte keine Zufallszahlen aus /dev/urandom lesen" << endl;
+     }
+     else
+     {
+
+        // Read num_bytes octets from /dev/urandom into buffer
+        urandom.read(sitzungsSchluesselSende._array, num_bytes);
+
+        // Close /dev/urandom
+        urandom.close();
+        sendeBereit= 1;
+     }
+   ]]
+
+   if(sendeBereit == 1)
+   {
+     //erzeuge FF_CTR_XOR(SitzungsSchluesselSende)
+     //pfc.fstr("xor Strom:").prNoLF(); 
+     for(var int i=0; i < 32; i++)
+     {
+         var char cxor = ff.gebeOktet();
+         //pfc.fstr("$ ").saHex(cxor).prNoLF();
+      
+         sitzungsSchluesselSendeVerdeckt[i] =  cast(char, ((cast(int,sitzungsSchluesselSende[i]) ^ cast(int,cxor)) & 0xFF) );
+     }
+     //pfc.fstr("").pr();     
+     bsocket = bsocket_e; 
+   }
+   else 
+   {
+     //Sitzungsschluessel nullen(Fehlerfall)
+     for(var int i=0; i < 32; i++)
+     {
+        sitzungsSchluesselSende[i] = '\0';
+        sitzungsSchluesselSendeVerdeckt[i] = '\0';
+     } 
+   }
+   sendePuffer = new char[pufferGroessen + 32];
+   sendePufferZeiger = 0;
+   empfangsPuffer = new char[pufferGroessen + 32];
+   empfangsPufferZeiger = 0;
+   empfangsPufferGueltig = 0;
+
+   ffSende = new FranksFeistel2(8);
+   ffSende.setzeSchluessel(sitzungsSchluesselSende);
+   
+}
+
+int GesicherteVerbindung::baueAuf()
+{
+   //pfc.fstr("SendeSchluessel:").prNoLF();
+   //SchluesselWerkzeuge::drucke(sitzungsSchluesselSende,0,32);
+   //Sende den verdeckten SendeSchluessel
+   if( (sendeBereit != 1) || (bsocket.send(sitzungsSchluesselSendeVerdeckt,32) != 1) || (bsocket.flush() != 1) )
+   {
+     if(logLevel >= 2) { pfc.fstr("int GesicherteVerbindung::baueAuf() NICHT erfolgreich").pr(); }
+     return -1;
+   }
+   //pfc.fstr("baueAuf Stelle 1").pr();
+   
+   var char empfangsSchluesselVerdeckt[32];
+   for(var int i=0; i < 32; i++)
+   {
+     var char oktet;
+     if( bsocket.recvChar(oktet) == 1) 
+     {
+        empfangsSchluesselVerdeckt[i] = oktet;
+     } 
+     else 
+     { 
+       pfc.fstr("baueAuf() recvChar() fehlgeschlagen").pr();
+       return -1; 
+     }
+   }
+   //pfc.fstr("baueAuf Stelle 2").pr();
+   
+   var FranksFeistel2 ff(8);
+   ff.setzeSchluessel(schluessel);
+   //erzeuge SitzungsSchluesselEmpfange
+   //   pfc.fstr("xor Strom:").prNoLF();
+   for(var int i=0; i < 32; i++)
+   {
+      var char cxor = ff.gebeOktet();
+          //pfc.fstr("$ ").saHex(cxor).prNoLF();
+      sitzungsSchluesselEmpfange[i] =  cast(char, ((cast(int,empfangsSchluesselVerdeckt[i]) ^ cast(int,cxor)) & 0xFF) );
+   }
+   //pfc.fstr("\n").pr();
+   //pfc.fstr("EmpfangsSchluessel:").prNoLF();
+   //SchluesselWerkzeuge::drucke(sitzungsSchluesselEmpfange,0,32);
+   
+   
+   ffEmpfange = new FranksFeistel2(8);
+   ffEmpfange.setzeSchluessel(sitzungsSchluesselEmpfange);
+   empfangsBereit = 1;
+     
+   if(logLevel >= 2) { pfc.fstr("int GesicherteVerbindung::baueAuf() erfolgreich").pr(); }
+   return 1;
+}
+
+int GesicherteVerbindung::puffere(char oktet)
+{
+   var int splm32 = sendePuffer.sz - 32;
+   if((sendeBereit == 1) && (sendePufferZeiger < splm32) )
+   {
+      sendePuffer[sendePufferZeiger] = oktet;
+      sendePufferZeiger++;
+      //pfc.fstr("puffer $ $").sa(oktet).sa(sendePufferZeiger).pr();
+      
+      return 1;
+   }
+   return 0;
+}
+
+int GesicherteVerbindung::sendeDenPuffer()
+{
+    var FeistelHash fhash(8);
+    //pfc.fstr("hashing eingabe: ").prNoLF();
+    for(var int i=0; i < sendePufferZeiger;i++)
+    {
+        var char c = sendePuffer[i];
+        //pfc.fstr("$ ").saHex(c).prNoLF();
+        fhash.oktetDazu(c);
+    }
+    //pfc.fstr("").pr();
+    var longlong pruefSumme[4];  
+    fhash.ergebnis(pruefSumme);
+    SchluesselWerkzeuge::wandle2(pruefSumme,sendePuffer,sendePufferZeiger);
+    //SchluesselWerkzeuge::drucke(sendePuffer,sendePufferZeiger,32);   
+
+
+    var int laengeChiffrat = sendePufferZeiger + 32;
+
+    //sende die Laenge des Chiffrats
+    var char laenge[4];
+    SchluesselWerkzeuge::wandle(laengeChiffrat,laenge,0);
+   
+    //pfc.fstr("vor senden, laenge:").prNoLF();
+    //SchluesselWerkzeuge::drucke(laenge,0,4);   
+
+    //pfc.fstr("XOR Strom:").prNoLF();
+    for(var int i=0; i < laengeChiffrat; i++)
+    {
+        var char xorStream = ffSende.gebeOktet();
+        //pfc.fstr("$ ").saHex(xorStream).prNoLF();
+        sendePuffer[i] = cast( char, cast(int,sendePuffer[i]) ^ cast(int,xorStream)); 
+        
+    }    
+    //pfc.fstr("").pr();
+   
+    if( bsocket.send(laenge,4) == 1 )
+    { 
+       if( bsocket.send(sendePuffer,laengeChiffrat) == 1 )
+       { 
+          if( bsocket.flush() == 1 )
+          {
+             sendePufferZeiger = 0;
+             if(logLevel >= 2) { pfc.fstr("GesicherteVerbindung::sendeDenPuffer() erfolgreich").pr(); } 
+             return 1;
+          }
+       }
+    }
+
+    return -1;
+}
+
+//lese ein Oktet und gebe die restliche Zahl der Oktets im Puffer zurueck
+//Bei Fehlern oder Verbindungsabbruch wird eine negative Zahl zurueckgegeben
+int GesicherteVerbindung::empfange(&char oktet)
+{
+    if(empfangsBereit == 1)
+    {
+       if(empfangsPufferGueltig == empfangsPufferZeiger )
+       {
+          //lese einen Chiffratsatz 
+            //lese die Laenge des Satzes
+          var char laenge[4];
+          for(var int i=0; i < 4;i++)
+          {
+             var char o;
+             if(bsocket.recvChar(o) != 1)
+             { return -1; }
+             laenge[i] = o;
+          }
+          //pfc.fstr("Laenge wie gelesen: $").prNoLF();
+          //SchluesselWerkzeuge::drucke(laenge,0,4);
+          var int laengeWort;
+          SchluesselWerkzeuge::wandle(laenge,0,laengeWort);
+          
+          //pfc.fstr("laenge: $").sa(laengeWort).pr();
+          
+          if((laengeWort <= empfangsPuffer.sz) && (laengeWort > 32) )
+          {
+             //Empfangen und Entschluesseln
+             //pfc.fstr("XOR Strom:").prNoLF();
+             for(var int i=0; i < laengeWort;i++)
+             {
+                var char xorStream = ffEmpfange.gebeOktet();
+                //pfc.fstr("$ ").saHex(xorStream).prNoLF();
+                var char oktets;
+                if(bsocket.recvChar(oktets) != 1)
+                { return -1; }
+                empfangsPuffer[i] = cast( char, (cast(int,oktets) ^ cast(int,xorStream)) );
+                //pfc.fstr("$ ").sa(empfangsPuffer[i]).prNoLF();
+             }
+             //pfc.fstr("").pr();
+             
+             
+             
+             
+             //pfc.fstr("laenge: $").sa(laengeWort).pr();
+             //Pruefe die Pruefsumme
+             var int lm32 = laengeWort - 32;
+             var FeistelHash fhash(8);
+             //pfc.fstr("hashing empfang eingabe: ").prNoLF();
+    
+             for(var int i=0; i < lm32; i++)
+             {
+                var char c = empfangsPuffer[i];
+                //pfc.fstr("$ ").saHex(c).prNoLF();
+                fhash.oktetDazu(c); 
+             }
+             //pfc.fstr("").pr();
+             var longlong pruefSumme[4];  
+             fhash.ergebnis(pruefSumme);
+             var char berechnetePS[32];
+             SchluesselWerkzeuge::wandle(pruefSumme,berechnetePS,0);
+             //SchluesselWerkzeuge::drucke(berechnetePS,0,32);
+             
+             for(var int i=0; i < 32;i++)
+             {
+                if( berechnetePS[i] != empfangsPuffer[lm32 + i] )
+                {
+                   pfc.fstr("Pruefsumme falsch !").pr();
+                   return -1;
+                }
+             }
+             empfangsPufferZeiger = 0; 
+             empfangsPufferGueltig = lm32;
+             //pfc.fstr("lm32: $").sa(lm32).pr();
+          }
+          else { return -1; }
+       }
+       if( empfangsPufferGueltig > empfangsPufferZeiger )
+       {
+           oktet = empfangsPuffer[empfangsPufferZeiger];
+           //pfc.fstr("empfangen: $ $ $").sa(empfangsPufferGueltig).sa(empfangsPufferZeiger).sa(oktet).pr();
+           
+           empfangsPufferZeiger++;
+           var int diff = empfangsPufferGueltig - empfangsPufferZeiger;
+           if( diff > 0)
+           { return 1; }
+           else { return 0; }
+       }
+    }
+    return -1;
+}
+
+void GesicherteVerbindung::setzeLogLevel(int l)
+{
+    logLevel = l;
+}
+
+    
+

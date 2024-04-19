@@ -1,0 +1,80 @@
+
+
+int Main::main()
+{ 
+   var PrintfClass pfc;
+   var CommandlineArgs cla;
+
+   if(cla.numberOfArguments() >= 3)
+   {
+      var String_16 betriebsArt;
+      cla.getArgument(1,betriebsArt);
+      if(betriebsArt.equals("server") == 1)
+      {
+         var TCPServer server(8111);
+         server.setLogLevel(3);
+         server.run();
+         return 1;
+      }
+      else
+      {
+         if(cla.numberOfArguments() >= 5)
+         {
+            var String_16 server;
+            cla.getArgument(2,server);
+            var String_16 Schluessel;
+            cla.getArgument(3,Schluessel);
+
+            var String_16 befehlsSatz;
+            var int j=4; 
+            var int na = cla.numberOfArguments();
+            var int nam1 = na - 1;
+            while(j < na )
+            {
+               var String_16 befehlsAnteil;
+               cla.getArgument(j,befehlsAnteil);
+               j++;
+               befehlsSatz.append(befehlsAnteil);
+               if(j < nam1) { befehlsSatz.append(" "); }
+            }
+            
+         
+            var BufferedSocket* clientBsock = new BufferedSocket(server,8111);
+            var GesicherteVerbindung gv(Schluessel,clientBsock,10000);
+            //gv.setzeLogLevel(3);
+
+            gv.baueAuf();
+       
+            //Befehl absenden 
+            for(var int i=0; i < befehlsSatz.length(); i++)
+            {
+               gv.puffere(befehlsSatz.getAt(i));
+            }
+            gv.sendeDenPuffer();
+
+            //Antwort lesen
+            var char c='X';
+            var String_16 empfangen;
+            while(gv.empfange(c) > 0)
+            {
+               empfangen.append(c);
+            }            
+            empfangen.append(c);
+            pfc.fstr("empfangen:$").sa(empfangen).pr();
+            return 1;
+            
+         }
+      }
+   }
+
+
+   pfc.fstr("Sichere Befehlszeile(sbz), Copyright Frank Gerlach 2024").pr();
+   pfc.fstr("Commercial use requires a written license statement from the author").pr();
+   pfc.fstr("Version 1.0").pr();
+   pfc.fstr("Benutzung: sbz ((client serverName Schluessel Befehl+ )|(server Schluessel))").pr();
+   pfc.fstr("Usage 1: sbz \"client\" serverName Key Command+").pr();
+   pfc.fstr("Usage 2: sbz \"server\" Key").pr();
+   
+
+   return -1;   
+}

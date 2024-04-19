@@ -1,0 +1,22 @@
+/************************************************************
+* This file is part of the Gauss Web Server project.
+* Source code can be used for any purpose, free of charge,
+* under the following conditions:
+*
+* 1.) Users will never hold the Author liable for 
+*     any defects of this software.
+* 2.) If used for safety-critical purposes, the 
+*     user must prove fitness for purpose by means
+*     of systematic testing and development according
+*     to industry standards such as the V-Model.
+*
+* Author and Copyright holder: Dipl. Ing.(BA) Frank Gerlach
+*
+************************************************************/
+
+class Main
+{
+methods:
+   int main();
+
+};

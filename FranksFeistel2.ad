@@ -1,0 +1,58 @@
+
+
+
+
+
+/* Franks  Feistel-Blockchiffre Nr 2*/
+
+class FranksFeistel2
+{ 
+   longlong schluesselIntern[4];
+   longlong piLL[32];
+   int anzahlRunden;
+
+   longlong stromSchluesselEingabe[2];
+   longlong stromSchluesselAusgabe[2];
+   int stromSchluesselAbtaster;
+
+   int debug;
+   PrintfClass pfc;
+methods:
+
+   FranksFeistel2(int anzahlRunden_i);
+
+   void setzeSchluessel(&String_16 schluesselZK);
+
+   void setzeSchluessel(&char schluesselFeld[]);
+
+   void setzeSchluessel(&longlong schluessel_LL[]);
+
+
+   void verschluessle(&longlong links, &longlong rechts);
+
+   char gebeOktet(); //im Stromschluessel-Betrieb
+
+
+   longlong sichereSchluessel(longlong piPart,longlong userKey);
+   
+};
+
+class FeistelHash
+{
+   longlong eingabePuffer[4];
+   longlong hashZustand[4];
+   int eingabePufferZeiger;
+   longlong eingabeLaenge;
+   FranksFeistel2* ffCipher;   
+methods:
+   FeistelHash(int rounds);
+   void oktetDazu(char oktet);
+
+   //gege 4 Worte/256oktet pruefSumme zurueck
+   void ergebnis(&longlong summe[]);
+};
+
+
+
+
+

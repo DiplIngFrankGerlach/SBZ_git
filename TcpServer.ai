@@ -1,0 +1,227 @@
+
+TCPServer::TCPServer(int port)
+{
+   _port=port;
+
+   servs = new ServerSocket(0,_port);//verbinde mit allen Schnittstellen auf dem port
+
+   var Benutzer_Umschalter bu;
+   bu.schalteNach(1000,1000);//zuTun: Diese Zahlen zum Einstellwert machen. (1000==pi auf der aktuellen Maschine)
+
+
+   var int nWorkers=300;
+   _workerList=new TCPServerWorker*[nWorkers];
+   _workerMutexList=new Mutex*[nWorkers];
+   var SemaphoreInfo* si=_tmgmtSema.getSemaphoreInfo();
+   _tmgmt=new TCPServerThreadMgmt(nWorkers,si);
+
+   
+   _tmgmtSema.P();
+   for(var int i=0;i<nWorkers;i++)
+   {
+       _workerMutexList[i]=new Mutex;
+       _workerMutexList[i].lock();//make workers wait for work
+       var MutexInfo* mi=_workerMutexList[i].getMutexInfo();
+       _workerList[i]=new TCPServerWorker(mi,_tmgmt,i);
+       var ThreadInfo* ti;
+       createThread(_workerList[i],ti);
+   }
+   
+}     
+
+
+void TCPServer::run()
+{
+     var int ip;
+     ip=0;//Verbinde mit allen Netzwerkschnittstellenb
+     //var PrintfClass pfc;
+     do
+     {
+        var Socket* s=servs.accept();
+        if( s == NULL )
+        {
+          s = NULL;
+          pfc.fstr("Socket is NULL").pr();
+        }
+        else
+        {
+           s.setzeTimeout();
+           if(logLevel > 0) {pfc.fstr("accepted new socket").pr();}
+           var int tid=_tmgmt.getFreeThread();
+           if(tid== -1)
+           {
+              _tmgmtSema.P();
+              tid=_tmgmt.getFreeThread();
+           }
+           _tmgmt.setSocket(tid,s);
+        
+           _workerMutexList[tid].unlock();
+        }
+     }
+     while(1==1);
+}
+
+void TCPServer::setLogLevel(int l)
+{
+    logLevel = l;
+}
+
+
+
+
+void TCPServerWorker::threadMain()
+{
+
+   var String_16 crlf;
+   var Mutex mtx(_mi);
+   crlf.append(CR);
+   crlf.append('\n');
+   
+   logLevel = 0;
+
+   while(1==1)
+   {
+     if(logLevel >= 2) { pfc.fstr("SBZ Worker working\n").pr(); }
+     var external Socket* sock;
+     mtx.lock();
+     _tmgmt.getSocket(_myId,sock);
+     
+     var BufferedSocket* bsock = new BufferedSocket(sock);
+
+     var String_16 schluessel;
+
+     var CommandlineArgs cla;
+     var String_16 betriebsArt;
+     if(cla.numberOfArguments() == 3)
+     {
+         cla.getArgument(2,schluessel);
+                               
+         var GesicherteVerbindung gv(schluessel,bsock,10000);
+
+         gv.baueAuf();
+
+     
+         var String_16 empfangen;
+         var String_16 ende("ende");
+         var int r=0;
+         do{
+            empfangen.clear();
+            do
+            {
+               var char c='X';
+               r = gv.empfange(c);
+               if(r < 0) { empfangen.clear();  }//falsche Pruefsumme, befehl leeren !
+               if( r >= 0)
+               {
+                 empfangen.append(c);
+               } 
+            }
+            while(r > 0);   
+            pfc.fstr("empfangener Befehl:>$<").sa(empfangen).pr();
+            
+            if((empfangen.length() > 1) && (empfangen.length() < 200) )
+            {
+               var String_16 ausgabePufferStr;
+               var char ausgabePuffer[100];
+               inline_cpp[[
+                  char sp('x');
+                  char befehlsPufferC[201];
+                  int i;
+                  for(i=0; i < empfangen.length(&sp); i++) { befehlsPufferC[i] = empfangen.getAt(&sp,i); }
+                  befehlsPufferC[i] = '\\0';
+                  cout << "BP: >" << befehlsPufferC << "<" << endl;
+                  //strcpy(befehlsPufferC, "/usr/bin/ls /tmp");
+                  FILE* ausgabeStrom = popen(befehlsPufferC,"r");
+                  if(ausgabeStrom != 0 )
+                  {
+                     while( fgets(ausgabePuffer._array,99,ausgabeStrom) != NULL)
+                     {
+                        //cout << "F1 " << ausgabePuffer._array  << endl;
+                        int j=0;
+                        ausgabePufferStr.append(&sp,ausgabePuffer); 
+                     }
+                  }
+               ]]
+               pfc.fstr("ausgabePufferStr: $").sa(ausgabePufferStr).pr();
+               for(var int i=0; i < ausgabePufferStr.length(); i++)
+               {
+                   gv.puffere(ausgabePufferStr.getAt(i));
+               }
+               gv.sendeDenPuffer();
+            }
+         }
+         while( (r >= 0) && (empfangen.equals(ende) == 0) );
+
+         sock.close();
+         var external Socket* nullSocket;
+         _tmgmt.setSocket(_myId,nullSocket);
+         _tmgmt.returnFreeThread(_myId);
+     }
+     else
+     {
+        pfc.fstr("Schluessel nicht gesetzt, kein Betrieb möglich").pr();
+     }
+     
+   }
+}
+
+TCPServerWorker::TCPServerWorker(MutexInfo* mi,TCPServerThreadMgmt* tmgmt,int myId)
+{
+  _mi=mi;
+  _tmgmt=tmgmt;
+  _myId=myId;
+  CR=cast(char,13);//ASCII carriage return
+  useTLS = 0;
+}
+
+
+
+
+TCPServerThreadMgmt::TCPServerThreadMgmt(int nThreads,SemaphoreInfo* mi):_freeSema(mi)
+{
+   _freeThreadIds=new int[nThreads];
+   _freeThreadCount=nThreads;
+   _socketList=new Socket*[nThreads];
+   for(var int i=0;i<nThreads;i++)
+   {
+      _freeThreadIds[i]=i;
+   }
+   _emptyState=0;
+}
+
+
+int TCPServerThreadMgmt::getFreeThread()
+{
+    if(_freeThreadCount==0)
+    {
+      _emptyState=1; 
+      return -1;
+    }
+    var int id=_freeThreadIds[ _freeThreadCount - 1 ];
+    _freeThreadCount=_freeThreadCount - 1;
+    return id;
+}
+
+void TCPServerThreadMgmt::returnFreeThread(int id)
+{
+    _freeThreadIds[_freeThreadCount]=id;
+    _freeThreadCount++;
+    if((_freeThreadCount==1) && (_emptyState==1))
+    {
+        _emptyState=0;
+        _freeSema.V();
+    }
+}
+
+void TCPServerThreadMgmt::setSocket(int idx,Socket* s)
+{
+   _socketList[idx]=s;
+}
+
+
+void TCPServerThreadMgmt::getSocket(int idx,&Socket* s_out)
+{
+   s_out=_socketList[idx];
+}
+
+void TCPServerThreadMgmt::threadMain(){}

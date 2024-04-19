@@ -1,0 +1,19 @@
+
+
+class SchluesselWerkzeuge
+{
+methods:
+    static void wandle(&char eingabe[],int stelleAnfang, &longlong ausgabe);
+
+    static void wandle(&char eingabe[],int stelleAnfang, &int ausgabe);
+
+    static void wandle(&longlong eingabe[], &char ausgabe[],int ausgabeZeiger);
+
+    static void wandle2(&longlong eingabe[], *char ausgabe[],int ausgabeZeiger);
+
+    static void wandle(int eingabe, &char ausgabe[],int ausgabeZeiger);
+    
+    static void drucke(&char puffer[], int stelle, int anzahl);
+    
+    static void drucke(*char puffer[], int stelle, int anzahl);
+};

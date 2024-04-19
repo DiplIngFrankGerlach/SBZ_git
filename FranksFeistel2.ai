@@ -1,0 +1,263 @@
+
+
+
+FranksFeistel2::FranksFeistel2(int anzahlRunden_i)
+{
+   anzahlRunden = anzahlRunden_i;
+   var int i=0;
+   piLL[i] =  cast(longlong,(0x30243F6A8885A308));i++;
+   piLL[i] =  cast(longlong,(0xD313198A2E037073));i++;
+   piLL[i] =  cast(longlong,(0x44A4093822299F31));i++;
+   piLL[i] =  cast(longlong,(0xD0082EFA98EC4E6C));i++;
+   piLL[i] =  cast(longlong,(0x89452821E638D013));i++;
+   piLL[i] =  cast(longlong,(0x77BE5466CF34E90C));i++;
+   piLL[i] =  cast(longlong,(0x6CC0AC29B7C97C50));i++;
+   piLL[i] =  cast(longlong,(0xDD3F84D5B5B54709));i++;
+   piLL[i] =  cast(longlong,(0x179216D5D98979FB));i++;
+   piLL[i] =  cast(longlong,(0x1BD1310BA698DFB5));i++;
+   piLL[i] =  cast(longlong,(0xAC2FFD72DBD01ADF));i++;
+   piLL[i] =  cast(longlong,(0xB7B8E1AFED6A267E));i++;
+   piLL[i] =  cast(longlong,(0x96BA7C9045F12C7F));i++;
+   piLL[i] =  cast(longlong,(0x9924A19947B3916C));i++;
+   piLL[i] =  cast(longlong,(0xF70801F2E2858EFC));i++;
+   piLL[i] =  cast(longlong,(0x16636920D871574E));i++;
+   piLL[i] =  cast(longlong,(0x69A458FEA3F4933D));i++;
+   piLL[i] =  cast(longlong,(0x7E0D95748F728EB6));i++;
+   piLL[i] =  cast(longlong,(0x58718BCD5882154A));i++;
+   piLL[i] =  cast(longlong,(0xEE7B54A41DC25A59));i++;
+   piLL[i] =  cast(longlong,(0xB59C30D5392AF260));i++;
+   piLL[i] =  cast(longlong,(0x13C5D1B023286085));i++;
+   piLL[i] =  cast(longlong,(0xF0CA417918B8DB38));i++;
+   piLL[i] =  cast(longlong,(0xEF8E79DCB0603A18));i++;
+   piLL[i] =  cast(longlong,(0x0E6C9E0E8BB01E8A));i++;
+   piLL[i] =  cast(longlong,(0x3ED71577C1BD314B));i++;
+   piLL[i] =  cast(longlong,(0x2778AF2FDA55605C));i++;
+   piLL[i] =  cast(longlong,(0x60E65525F3AA55AB));i++;
+   piLL[i] =  cast(longlong,(0x945748986263E814));i++;
+   piLL[i] =  cast(longlong,(0x4055CA396A2AAB10));i++;
+   piLL[i] =  cast(longlong,(0xB6B4CC5C341141E8));i++;
+   piLL[i] =  cast(longlong,(0xCEA15486AF7C72E9));i++;
+
+   stromSchluesselEingabe[0] = piLL[30]; 
+   stromSchluesselEingabe[1] = piLL[31]; 
+   stromSchluesselAbtaster = -1;
+   debug = 0; 
+}
+
+
+
+void FranksFeistel2::setzeSchluessel(&String_16 schluesselZK)
+{
+   var int mpl = piLL.sz - 1;
+   var longlong schluesselLL[4];
+   for(var int i=0; i < 4; i++) { schluesselLL[i] = cast(longlong,0); }
+   for(var int i=0; i < schluesselZK.length(); i++)
+   {
+      var char so = schluesselZK.getAt(i);
+      var longlong einMischung = cast(longlong,so) * piLL[i & mpl]; //oktet aufspreizen
+      schluesselLL[i & 3] = schluesselLL[i & 3] ^ einMischung; //einMischen
+      schluesselLL[i & 3] = (schluesselLL[i & 3] >> 8) ^ (schluesselLL[i & 3] << 56); //Wort rotieren, um Doppelausloeschungen zu minimieren
+   }
+   this.setzeSchluessel(schluesselLL);
+}
+
+void FranksFeistel2::setzeSchluessel(&char schluesselFeld[])
+{
+   var int mpl = piLL.sz - 1;
+   var longlong schluesselLL[4];
+   for(var int i=0; i < 4; i++) { schluesselLL[i] = cast(longlong,0); }
+   for(var int i=0; i < schluesselFeld.sz; i++)
+   {
+      var char so = schluesselFeld[i];
+      var longlong einMischung = cast(longlong,so) * piLL[i & mpl]; //oktet aufspreizen
+      schluesselLL[i & 3] = schluesselLL[i & 3] ^ einMischung; //einMischen
+      schluesselLL[i & 3] = (schluesselLL[i & 3] >> 8) ^ (schluesselLL[i & 3] << 56); //Wort rotieren, um Doppelausloeschungen zu minimieren
+   }
+   this.setzeSchluessel(schluesselLL);
+}
+
+//make sure funny input keys do not generate internal zeroed keys
+longlong FranksFeistel2::sichereSchluessel(longlong piPart,longlong userKey)
+{
+     //var PrintfClass pfc;
+     
+     var longlong result = (piPart * userKey) + (piPart * (userKey+piLL[1])) + (piPart * (userKey ^ piLL[2]));
+
+     //pfc.fstr("sichereSchluessel $ $ $").saHex(piPart).saHex(userKey).saHex(result).pr();
+
+     return result;
+}
+
+void FranksFeistel2::setzeSchluessel(&longlong schluessel_LL[])
+{
+   if(schluessel_LL.sz < 4)
+   {
+     pfc.fstr("Feistel Schluessel LL zu kurz").pr();
+     inline_cpp[[ exit(-1); ]]
+   }
+
+   var int i=0;
+   var int modSLI = schluesselIntern.sz - 1;
+   var int modSLE = schluessel_LL.sz - 1;
+   var int modPi  = piLL.sz;
+   schluesselIntern[i & modSLI] = this.sichereSchluessel(piLL[i],schluessel_LL[i & modSLE]); i++;
+   schluesselIntern[i & modSLI] = this.sichereSchluessel(piLL[i],schluessel_LL[i & modSLE]); i++;
+   schluesselIntern[i & modSLI] = this.sichereSchluessel(piLL[i],schluessel_LL[i & modSLE]); i++;
+   schluesselIntern[i & modSLI] = this.sichereSchluessel(piLL[i],schluessel_LL[i & modSLE]); i++;
+
+   
+   var longlong s1 = schluesselIntern[0]; 
+   var longlong s2 = schluesselIntern[1]; 
+   var longlong s3 = schluesselIntern[2]; 
+   var longlong s4 = schluesselIntern[3]; 
+
+   //Schluessel durchmischen, sehr wichtig fuer Pruefsummenberechnung
+   schluesselIntern[0] = (s1 * piLL[5]) ^ (s2 * piLL[6]) ^ (s3 * piLL[7]) ^ (s4 << 17) ^ (s4 >> 47);
+   schluesselIntern[1] = (s1 << 33) ^ (s1 >> 31) ^ (s2 * piLL[8]) ^ (s3 * piLL[9]) ^ (s4 * piLL[10]);
+   schluesselIntern[2] = (s1 * piLL[11]) ^ (s2 >> 5) ^ (s2 << 59) ^ (s3 * piLL[12]) ^ (s4 * piLL[13]);
+   schluesselIntern[3] = (s1 * piLL[14]) ^ (s2 * piLL[15]) ^ (s3 << 10) ^ (s3 >> 54) ^ (s4 * piLL[16]);
+
+   /*pfc.fstr("Feistel-Schluessel, stelle 0: $ $ $ $")
+                              .saHex(schluesselIntern[0])
+                              .saHex(schluesselIntern[1])
+                              .saHex(schluesselIntern[2])
+                              .saHex(schluesselIntern[3]).pr();*/
+
+   //Ueberlanger Eingabeschluessel
+   while(i < schluessel_LL.sz)
+   {
+       schluesselIntern[i & modSLI] = (schluesselIntern[i & modSLI] << 19) ^ (schluesselIntern[i & modSLI] >> 45);
+       schluesselIntern[i & modSLI] = this.sichereSchluessel(piLL[i],schluessel_LL[i & modSLE]) ;
+       i++;
+   }
+
+   /*
+   pfc.fstr("Feistel-Schluessel: $ $ $ $")
+                              .saHex(schluesselIntern[0])
+                              .saHex(schluesselIntern[1])
+                              .saHex(schluesselIntern[2])
+                              .saHex(schluesselIntern[3]).pr(); 
+   */
+  
+}
+
+/* Feistel-Verschluesselung von 128 bit */
+void FranksFeistel2::verschluessle(&longlong links, &longlong rechts)
+{
+   if(debug){ pfc.fstr("verschluessle eingabe: $ $").saHex(links).saHex(rechts).pr(); }
+   var int modSLI = schluesselIntern.sz - 1;
+   for(var int i=0; i < anzahlRunden; i=i + 2)
+   {
+      if(debug){ pfc.fstr("verschluessle 1.2: $ $ $").sa( i & modSLI ).saHex(schluesselIntern[i & modSLI]).saHex(piLL[i+2]).pr(); }
+
+      links = links ^ (rechts * schluesselIntern[i & modSLI])  
+                    ^ (rechts << 29) ^ (rechts >> 35) //Rotation, um Durchmischung zu garantieren
+                    ^ (rechts << 51) ^ (rechts >> 13) 
+                    ^ piLL[i+2];//ensure that zeroed input will become non zero
+                    
+      //if(debug){ pfc.fstr("verschluessle 2: $ $").saHex(links).saHex(rechts).pr(); }
+
+      //tausche links und rechts (Feistel-Leiter)
+      var longlong speicher = links;
+      links = rechts;
+      rechts = speicher;
+
+      links = links ^ ( rechts & ( rechts >> 17) ) ^ 
+                      (rechts & (rechts << 31))     ^ 
+                      (rechts & schluesselIntern[i & modSLI]);
+
+      //tausche links und rechts (Feistel-Leiter)
+      speicher = links;
+      links = rechts;
+      rechts = speicher;
+   }
+   if(debug){ pfc.fstr("verschluessle: $ $").saHex(links).saHex(rechts).pr(); }
+}
+
+
+
+
+char FranksFeistel2::gebeOktet()
+{
+   if((stromSchluesselAbtaster == -1) || (stromSchluesselAbtaster == 16) )
+   {
+      var longlong links  = stromSchluesselEingabe[0];
+      var longlong rechts = stromSchluesselEingabe[1];
+      stromSchluesselEingabe[1] = stromSchluesselEingabe[1] + 1;
+      this.verschluessle(links, rechts);
+      //pfc.fstr("FranksFeistel2::gebeOktet() $ $").sa(links).sa(rechts).pr();
+      stromSchluesselAusgabe[0] = links;
+      stromSchluesselAusgabe[1] = rechts;
+      stromSchluesselAbtaster = 0;
+   }
+   var int wortSchiebung = (stromSchluesselAbtaster % 8) * 8;
+   var char oktet = cast(char , ( (stromSchluesselAusgabe[stromSchluesselAbtaster / 8] >> wortSchiebung) & 0xFF ) );
+   stromSchluesselAbtaster = stromSchluesselAbtaster + 1;
+ 
+   //if(debug){pfc.fstr("gebeOktet $").saHex(oktet).pr(); }
+   return oktet;
+}
+
+
+FeistelHash::FeistelHash(int runden)
+{
+   for(var int i=0;i < eingabePuffer.sz; i++){ eingabePuffer[i] = cast(longlong,0); }
+   
+   for(var int i=0;i < hashZustand.sz; i++){ hashZustand[i] = cast(longlong,0); }
+   
+   eingabeLaenge = cast(longlong,0);
+   eingabePufferZeiger = 0;
+
+   ffCipher = new FranksFeistel2(runden);
+
+}
+
+void FeistelHash::oktetDazu(char oktet)
+{
+   //var PrintfClass pfc;
+   //pfc.fstr("oktetDazu: $").saHex(oktet).pr();
+   if(eingabePufferZeiger == 32 )
+   {
+      //for(var int i=0; i < 4; i++) { pfc.fstr("FeistelHash $").sa(eingabePuffer[i]).pr(); }
+
+      ffCipher.setzeSchluessel(eingabePuffer);      
+      ffCipher.verschluessle(hashZustand[0],hashZustand[1]);
+      hashZustand[2] = hashZustand[2] ^ hashZustand[0];
+      hashZustand[3] = hashZustand[3] ^ hashZustand[1];
+      ffCipher.verschluessle(hashZustand[2],hashZustand[3]);
+      eingabePufferZeiger = 0;
+
+      for(var int i=0; i < 4; i++) { eingabePuffer[i] = cast(longlong,0); }
+   }
+   var longlong oktetLL = cast(longlong,oktet);
+   oktetLL = oktetLL << ((eingabePufferZeiger & 7) * 8);
+   var int wi = eingabePufferZeiger >> 3;
+   eingabePuffer[wi] = eingabePuffer[wi] ^ oktetLL;
+   eingabePufferZeiger++;
+   eingabeLaenge = eingabeLaenge + 1;
+}
+
+void FeistelHash::ergebnis(&longlong summe[])
+{
+    for(var int i=0; i < 8; i++)
+    {
+        var char oktetEL = cast(char, ((eingabeLaenge >> (i*8)) & 0xFF));
+        this.oktetDazu(oktetEL);
+    }  
+    var int restOktets = 31 - cast(int,(eingabeLaenge & 0x1F));
+    for(var int i=0; i < 8; i++)
+    {
+       this.oktetDazu(cast(char,0));
+    }
+
+    //var PrintfClass pfc;
+    //for(var int i=0; i < 4; i++) { pfc.fstr("FeistelHash $").saHex(eingabePuffer[i]).pr(); }
+
+    ffCipher.setzeSchluessel(eingabePuffer);      
+    ffCipher.verschluessle(hashZustand[0],hashZustand[1]);
+    hashZustand[2] = hashZustand[2] ^ hashZustand[0];
+    hashZustand[3] = hashZustand[3] ^ hashZustand[1];
+    ffCipher.verschluessle(hashZustand[2],hashZustand[3]);
+
+    for(var int i=0;i < 4;i++) { summe[i] = hashZustand[i]; }
+}

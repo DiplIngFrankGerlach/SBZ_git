@@ -1,0 +1,104 @@
+/************************************************************
+* This file is part of the Gauss Web Server project.
+* Source code can be used for any purpose, free of charge,
+* under the following conditions:
+*
+* 1.) Users will never hold the Author liable for 
+*     any defects of this software.
+* 2.) If used for safety-critical purposes, the 
+*     user must prove fitness for purpose by means
+*     of systematic testing and development according
+*     to industry standards such as the V-Model.
+*
+* Author and Copyright holder: Dipl. Ing.(BA) Frank Gerlach
+*
+************************************************************/
+
+class Socket multithreaded
+{
+   int _handle;
+   inline_cpp[[
+      struct tls *tlsConnection;
+   ]] 
+  methods:
+  
+    void open_internal(int destinationIP,int destinationPort);
+  
+  
+    Socket(int handle);
+    
+    Socket(int destinationIP,int destinationPort);    
+    
+    Socket(&String_16 server,int destinationPort); 
+    
+    external int recv(&char buffer[],int maxCount);
+    
+    external int send(&char buffer[],int count);
+    
+    external int recv(*char buffer[],int maxCount);
+    
+    external int send(*char buffer[],int count);
+    
+    
+    external int sendString(&String_16 str);
+    
+    external void close();
+    
+    void threadMain();
+       
+    external int isConnected();
+
+    external void gegenseite(&String_16 adresse);
+
+    external void setzeTimeout();
+
+    external int connectTLS(&String_16 host, int port);
+    
+    ~Socket();
+};
+
+class TCPInit multithreaded
+{
+   static TCPInit* __singleton;
+  methods:
+   TCPInit();   
+   thisreturn void perform();
+   void threadMain();
+};
+
+class ServerSocket
+{
+    int _error;
+    int _serverHandle;
+    
+  methods:
+    ServerSocket(int ipaddr,int port);
+    
+    Socket* accept();
+}; 
+ 
+
+
+class BufferedSocket
+{
+    *char _readBuffer[];
+    *char _writeBuffer[];
+    Socket* _socket;
+    int _validReadBytes;
+    int _readPtr;
+    int _validWriteBytes;
+methods:
+    BufferedSocket(&String_16 host,int port);
+    BufferedSocket(Socket* s);
+    int readWord(&String_16 word,char trenner1,char trenner2);
+    int recvChar(&char ret);
+    int send(&char outbuf[],int valid);
+    int send(*char outbuf[],int valid);
+    int send(&String_16 str);
+    int flush();
+    int isConnected();
+
+    int receive(&char feld[]);
+
+    void gegenseite(&String_16 adresse);
+};

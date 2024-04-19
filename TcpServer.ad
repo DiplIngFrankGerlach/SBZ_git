@@ -1,0 +1,66 @@
+
+
+class TCPServerWorker multithreaded
+{
+   int logLevel;
+   int _port; 
+   MutexInfo* _mi;
+   TCPServerThreadMgmt* _tmgmt;
+   int _myId;
+   char  CR;
+   int useTLS;
+   String_16 contentType;
+   PrintfClass pfc;
+  methods:
+
+
+  
+   TCPServerWorker(MutexInfo* mi,TCPServerThreadMgmt* tmgmt,int myId);
+   external void stop();
+   external void start();
+   external void threadMain();   
+};
+
+class TCPServerThreadMgmt multithreaded
+{
+   *int _freeThreadIds[];
+   int _freeThreadCount;
+   *Socket* _socketList[];
+   Semaphore _freeSema;
+   int _emptyState;
+  methods:
+    TCPServerThreadMgmt(int nThreads,SemaphoreInfo* mi);
+    external int getFreeThread();
+    external void returnFreeThread(int id);
+    external void setSocket(int idx,Socket* s);
+    external void getSocket(int idx,&Socket* s_out);
+    external void threadMain();
+};
+
+
+class TCPServer 
+{
+   int _port;
+   *TCPServerWorker *_workerList[];
+   *Mutex *_workerMutexList[];
+   TCPServerThreadMgmt* _tmgmt;
+   Semaphore _tmgmtSema;
+   int useTLS;   
+
+   ServerSocket* servs;
+
+   PrintfClass pfc;
+   int logLevel;
+methods:
+   TCPServer(int port);
+
+   void setLogLevel(int l);
+
+
+   
+   void run();
+}; 
+
+
+
+

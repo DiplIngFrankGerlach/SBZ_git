@@ -1,0 +1,37 @@
+
+
+/* Eine Realisierung des Koch Chiffrierprotokolls */
+class GesicherteVerbindung
+{
+    int logLevel;
+    PrintfClass pfc;
+    
+    char sitzungsSchluesselSende[32];
+    char sitzungsSchluesselSendeVerdeckt[32];
+    int sendeBereit;
+    int empfangsBereit;
+    char sitzungsSchluesselEmpfange[32];
+    String_16 schluessel;
+    BufferedSocket* bsocket;
+
+    *char sendePuffer[];
+    int sendePufferZeiger;
+    *char empfangsPuffer[];
+    int empfangsPufferZeiger;
+    int empfangsPufferGueltig;
+
+    FranksFeistel2* ffSende;
+    FranksFeistel2* ffEmpfange;
+    
+
+methods:
+    GesicherteVerbindung(&String_16 schluessel_e,BufferedSocket* bsock_e,int pufferGroessen);
+    int baueAuf();
+
+    int puffere(char oktet); 
+    int sendeDenPuffer(); 
+    int empfange(&char oktet); 
+    
+    void setzeLogLevel(int i);
+    
+};

@@ -1,0 +1,146 @@
+
+/*entferne Leerzeichen links und rechts */
+void StringUtil::trim(&String_16 eingabe,&String_16 ausgabe)
+{
+    var ZKNuetzlich zkn;
+    var int links = 0;
+    var int el = eingabe.length();
+    var char z = eingabe.getAt(links);
+    ausgabe.clear();
+
+    if(el == 0)
+    { return; }
+
+    while((links < el)  && (zkn.istLeerzeichen(z)==1) )
+    {
+        links++;
+        if(links < el){ z = eingabe.getAt(links); }
+    }
+    var int rechts = el - 1;
+    z = eingabe.getAt(rechts);
+    while((rechts > links)  && (zkn.istLeerzeichen(z)==1  ) )
+    {
+        rechts = rechts - 1;
+        if(rechts > links){ z = eingabe.getAt(rechts); }
+    }
+    if( (links >= 0 ) && ( links <= rechts) )
+    {
+       eingabe.subString(ausgabe,links,rechts);
+    }
+}
+
+void StringUtil::gross(char c,&char ausgabe)
+{
+   switch(c)
+   {
+       case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k':
+       case 'l': case 'm': case 'n': case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v':
+       case 'w': case 'x': case 'y': case 'z':
+       {
+          var int n = cast(int,c); 
+          n = n - cast(int,'a');
+          n = n + cast(int,'A');
+          ausgabe = cast(char,n);
+       };break;
+       default: {ausgabe = c; };
+   } 
+}
+
+/*vergleiche zwei Zeichenketten, Gross- und Kleinbuchstaben werden identisch gewertet */
+void StringUtil::vergleichGK(&String_16 s1,&String_16 s2,&int ergebnis)
+{
+   if(s1.length() != s2.length()){ergebnis = -1; return;}
+   var int l = s1.length();
+   for(var int i=0; i < l; i++)
+   {
+       var char g1;
+       var char g2;
+       StringUtil::gross(s1.getAt(i),g1);  
+       StringUtil::gross(s2.getAt(i),g2);  
+       if( g1 != g2)
+       { ergebnis = -1; return ; } 
+   }
+   ergebnis = 1;
+}
+
+void StringUtil::appendDouble(double x,&String_16 ausgabe,int anzStellen)
+{
+    var char puffer[31];
+    inline_cpp[[
+       snprintf(puffer._array,30,"%f",x); 
+    ]]
+    for(var int i=0; (i < anzStellen) && (puffer[i] != '\0');i++)
+    {ausgabe.append(puffer[i]); }
+}
+
+
+void StringUtil::UnitTest()
+{
+    var PrintfClass pfc;
+    var String_16 s("   123    ");
+    var String_16 sZiel;
+    StringUtil::trim(s,sZiel);
+    if(sZiel.equals("123") != 1) { pfc.fstr("StringUtil::UnitTest() Fehler 1").pr(); return; }
+
+    s.assign("456");
+    sZiel.clear();
+    StringUtil::trim(s,sZiel);
+    if(sZiel.equals("456") != 1) { pfc.fstr("StringUtil::UnitTest() Fehler 2").pr(); return; }
+
+    s.assign("                              a         ");
+    sZiel.clear();
+    StringUtil::trim(s,sZiel);
+    if(sZiel.equals("a") != 1) { pfc.fstr("StringUtil::UnitTest() Fehler 3").pr(); return; }
+
+    s.assign("Z         ");
+    sZiel.clear();
+    StringUtil::trim(s,sZiel);
+    if(sZiel.equals("Z") != 1) { pfc.fstr("StringUtil::UnitTest() Fehler 4").pr(); return; }
+
+    s.assign("P");
+    sZiel.clear();
+    StringUtil::trim(s,sZiel);
+    if(sZiel.equals("P") != 1) { pfc.fstr("StringUtil::UnitTest() Fehler 5").pr(); return; }
+
+    s.assign("Zafelstein");
+    sZiel.clear();
+    StringUtil::trim(s,sZiel);
+    if(sZiel.equals("Zafelstein") != 1) { pfc.fstr("StringUtil::UnitTest() Fehler 6").pr(); return; }
+
+
+    s.assign("          Zafelstein                  11    ");
+    sZiel.clear();
+    StringUtil::trim(s,sZiel);
+    if(sZiel.equals("Zafelstein                  11") != 1) { pfc.fstr("StringUtil::UnitTest() Fehler 7").pr(); return; }
+
+    s.assign("");
+    sZiel.clear();
+    StringUtil::trim(s,sZiel);
+    if(sZiel.equals("") != 1) { pfc.fstr("StringUtil::UnitTest() Fehler 8").pr(); return; }
+
+    s.assign("T");
+    sZiel.clear();
+    StringUtil::trim(s,sZiel);
+    if(sZiel.equals("T") != 1) { pfc.fstr("StringUtil::UnitTest() Fehler 8").pr(); return; }
+
+    var String_16 sk("walter");
+    var String_16 sg("WalTER");
+    var int ergebnis = -1;
+    StringUtil::vergleichGK(sk,sg,ergebnis); 
+    if(ergebnis != 1) { pfc.fstr("StringUtil::UnitTest() Fehler 9").pr(); return; }
+   
+    sg.assign("W4lter"); 
+    StringUtil::vergleichGK(sk,sg,ergebnis); 
+    if(ergebnis != -1) { pfc.fstr("StringUtil::UnitTest() Fehler 10").pr(); return; }
+
+    sg.assign("Walter"); 
+    StringUtil::vergleichGK(sk,sg,ergebnis); 
+    if(ergebnis != 1) { pfc.fstr("StringUtil::UnitTest() Fehler 11").pr(); return; }
+
+    sg.assign("11111111111111111111111111111111111111111111111111111111111111111111WELT"); 
+    sk.assign("11111111111111111111111111111111111111111111111111111111111111111111welt"); 
+    StringUtil::vergleichGK(sk,sg,ergebnis); 
+    if(ergebnis != 1) { pfc.fstr("StringUtil::UnitTest() Fehler 12").pr(); return; }
+
+    pfc.fstr("StringUtil::UnitTest() Erfolgreich !").pr(); 
+}

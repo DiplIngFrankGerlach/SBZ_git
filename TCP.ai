@@ -1,0 +1,541 @@
+
+Socket::Socket(int handle)
+{
+  var TCPInit* init=new TCPInit;
+  _handle=handle;
+  inline_cpp[[
+     tlsConnection = NULL;
+  ]]
+}
+
+
+
+int Socket::connectTLS(&String_16 host, int port)
+{
+  var char hostPuffer[256];
+  host.toCharArray(hostPuffer);
+  //GELOESCHT !
+  return 1;//Erfolg
+}
+
+/* setze die Abbruchzeit auf 30s ohne Verkehr */
+void Socket::setzeTimeout()
+{
+    var PrintfClass pfc;
+    var int fehlerEmpfangen = 0;
+    var int fehlerSenden = 0;
+    inline_cpp[[
+       struct timeval timeout;      
+       timeout.tv_sec = 30;
+       timeout.tv_usec = 0;
+
+       if (setsockopt (_handle, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout) < 0)
+       {
+          fehlerEmpfangen = 1;
+       }
+
+       if (setsockopt (_handle, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof timeout) < 0)
+       {
+          fehlerSenden = 1; 
+       }
+    ]]
+    if(fehlerEmpfangen) {pfc.fstr("setsockopt timeout=10s(empfangen) fehlgeschlagen\n");}
+    if(fehlerSenden) {pfc.fstr("setsockopt timeout=10s(senden) fehlgeschlagen\n");}
+}
+
+int Socket::recv(&char buffer[],int maxCount)
+{
+   var int ret = -1;
+   if(maxCount > buffer.sz)
+   {
+      buffer[0] = 'X';//safety
+      return -2;
+   }
+   inline_cpp[[
+     if( tlsConnection == NULL )
+     {
+         ret=::recv(_handle,buffer._array,maxCount,0);
+     }
+     else
+     { 
+     }
+   ]]
+   return ret;
+}
+
+int Socket::recv(*char buffer[],int maxCount)
+{
+   var int ret = -1;
+   if(maxCount>buffer.sz)
+   {
+      return -2;
+   }
+   inline_cpp[[
+     if( tlsConnection == NULL )
+     {
+         ret=::recv(_handle,buffer._theObject->_array,maxCount,0);
+     }
+     else
+     { 
+     }
+   ]]
+   return ret;
+}
+    
+int Socket::send(&char buffer[],int count)
+{
+   var int ret;
+   if(count>buffer.sz)
+   {
+      return -2;
+   }
+   inline_cpp[[
+     ret=0;
+     while(ret<count)
+     {
+        int ret2;
+        if( tlsConnection == NULL )
+        {
+           ret2 = ::send(_handle,buffer._array+ret,count-ret,0);
+        }
+        else
+        {
+        }
+        if(ret2<=0)
+        {
+           return -1;
+        }
+        ret=ret+ret2;
+     }
+   ]]
+   return ret;
+}
+
+
+int Socket::send(*char buffer[],int count)
+{
+   var int ret;
+   if(count>buffer.sz)
+   {
+      return -2;
+   }
+   inline_cpp[[
+     ret=0;
+     while(ret<count)
+     {
+        int ret2;
+        if( tlsConnection == NULL )
+        {
+           ret2=::send(_handle,buffer._theObject->_array+ret,count-ret,0);
+        }
+        else
+        {
+        }
+        if(ret2<=0)
+        {
+           return -1;
+        }
+        ret=ret+ret2;
+     }
+   ]]
+   return ret;
+}
+
+
+void Socket::close()
+{
+    inline_cpp[[
+       #ifdef WIN32_X86
+          shutdown(_handle,0);
+       #endif 
+       #if defined(GCC_X86) || defined(__clang__)
+          ::close(_handle);
+       #endif
+   ]]
+        
+}
+
+
+
+ServerSocket::ServerSocket(int ipaddr,int port)
+{
+    var TCPInit* init=new TCPInit;
+    inline_cpp[[
+       _serverHandle=socket(AF_INET,SOCK_STREAM,0);
+       sockaddr_in sock_str;
+       sock_str.sin_family=AF_INET;
+       sock_str.sin_addr.s_addr=htonl(ipaddr);
+       sock_str.sin_port=htons(port);
+       int on = 1;
+       #if defined(GCC_X86) || defined(__clang__)
+       if (setsockopt(_serverHandle, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+       {
+          perror("setsockopt(SO_REUSEADDR) failed");
+       }
+       #endif
+
+       if(bind(_serverHandle,(struct sockaddr*)&sock_str,sizeof(sock_str))<0)
+       {
+          #ifdef WIN32_X86
+          printf("error during bind() %u\\n",WSAGetLastError());
+          #else
+          printf("error during bind() errno:%u\\n",errno);
+          #endif
+         _error=-1;
+       }
+       if(listen(_serverHandle,10)<0)
+       {
+         _error=-2;         
+       }
+    ]]
+}
+
+
+Socket* ServerSocket::accept()
+{
+  
+   var int handle;
+   inline_cpp[[
+      struct sockaddr_in sock_str_remote; 
+      #if defined(GCC_X86) || defined(__clang__)
+         socklen_t 
+      #else
+   	 int
+      #endif
+      len=sizeof(struct sockaddr_in);
+      handle=::accept(_serverHandle,(struct sockaddr*)&sock_str_remote,&len);
+      if(handle<=0)
+      {
+         printf("Error in accept() errno:%u\\n",errno);
+      }
+   ]]
+   return new Socket(handle);   
+}
+
+Socket::Socket(&String_16 server,int destinationPort)
+{
+  inline_cpp[[
+     tlsConnection = NULL;
+  ]]
+   var int ipaddr=0;
+   var char serverPuffer[256];
+   server.toCharArray(serverPuffer);
+   serverPuffer[255] = cast(char,0);//sicherheitshalber
+   inline_cpp[[
+        hostent* he;
+        he=gethostbyname(serverPuffer._array);
+        if(he != NULL)
+        {
+            char* ap=he->h_addr_list[0];//improvement to balance load possible
+            for(int i=0;i<4;i++)
+            {
+               int onebyte=ap[i];
+               onebyte=onebyte&255;
+               ipaddr=ipaddr | onebyte;
+               if(i<3)
+               {
+                  ipaddr=ipaddr<<8;
+               }
+            }
+            char x;
+            this->open_internal(&x,ipaddr,destinationPort);
+        }
+   ]]
+}
+
+Socket::Socket(int destinationIP,int destinationPort)
+{
+  inline_cpp[[
+     tlsConnection = NULL;
+  ]]
+   this.open_internal(destinationIP,destinationPort);
+}
+
+void Socket::open_internal(int destinationIP,int destinationPort)
+{
+    var TCPInit* init=new TCPInit;
+    inline_cpp[[
+       _handle=socket(AF_INET,SOCK_STREAM,0);
+       #ifdef WIN32_X86
+       if(_handle<=0)printf("error during socket() %u\n",WSAGetLastError());
+       #else
+       if(_handle<=0)printf("error during socket() errno:%u\n",errno);
+       #endif
+       sockaddr_in sock_str;
+       sock_str.sin_family=AF_INET;
+       sock_str.sin_addr.s_addr=htonl(destinationIP);
+       sock_str.sin_port=htons((short)destinationPort);              
+       int ret=connect(_handle,(struct sockaddr*)&sock_str,sizeof(sock_str));
+       if(ret<0)
+       {
+   	   #ifdef WIN32_X86
+   	   printf("error during connect() %u\n",WSAGetLastError());
+   	   #else
+   	   printf("error during connect() errno:%u\n",errno);
+   	   #endif
+       }
+             
+    ]]
+}
+
+TCPInit::TCPInit()
+{
+  this. perform();  
+}
+
+void TCPInit::perform()
+{
+   if(__singleton==NULL)
+   {
+       __singleton=this;
+       inline_cpp[[
+         #ifdef WIN32_X86
+          WSADATA wsaData;
+          int ret=WSAStartup(0x0101,&wsaData);
+          printf("WSAStartup ret code=%i\n",ret);
+          #endif
+       ]]
+   }
+} 
+
+void TCPInit::threadMain()   
+{
+}
+
+
+
+void Socket::threadMain(){}
+
+
+int Socket::sendString(&String_16 str)
+{
+   var char buffer[2048];
+   var int zeiger=0;
+   var int l=str.length();
+   while(zeiger<l)
+   {
+      var int zeiger2=0;
+      while((zeiger<l) && (zeiger2<buffer.sz) )
+      {
+         buffer[zeiger2]=str.getAt(zeiger);
+         zeiger++;
+         zeiger2++;
+      }
+      if( this.send(buffer,zeiger2) < 1 )
+      {
+        return -1;
+      }
+   }
+   return l;
+}
+
+int Socket::isConnected()
+{
+  if(_handle >0){return 1;}
+  return 0;
+}
+
+
+
+    BufferedSocket::BufferedSocket(&String_16 host,int port)
+    {
+        var TCPInit* init=new TCPInit;
+        _socket=new Socket(host,port);
+        _readBuffer=new char[4096];
+        _readPtr=0;
+        _writeBuffer=new char[4096];
+        _validReadBytes=0;
+        _validWriteBytes=0;
+    }
+    
+    BufferedSocket::BufferedSocket(Socket* s)
+    {
+        var TCPInit* init=new TCPInit;
+        _socket=s;
+        _readBuffer=new char[4096];
+        _readPtr=0;
+        _writeBuffer=new char[4096];
+        _validReadBytes=0;
+        _validWriteBytes=0;
+    }
+    
+    int BufferedSocket::recvChar(&char ret)
+    {
+       if(_readPtr>=_validReadBytes)
+       {
+           _readPtr=0;
+           var int rets;
+           rets = _socket.recv(_readBuffer,_readBuffer.sz);
+           if( rets <= 0 )
+           {
+              _validReadBytes = 0;
+              ret = cast(char,0);
+              return -1;
+           }
+           else
+           {
+              _validReadBytes = rets;
+           }
+       }
+       ret=_readBuffer[_readPtr];
+       _readPtr++;
+       return 1;
+    }
+
+
+      int BufferedSocket::receive(&char feld[])
+      {
+         if(_readPtr>=_validReadBytes)
+         {
+             var int rets;
+             rets = _socket.recv(feld,feld.sz);
+             if( rets <= 0 )
+             {
+                return -1;
+             }
+             else
+             {
+                return rets;
+             }
+         }
+         else
+         {
+            var int ausgStelle = 0;
+            while( (_readPtr < _validReadBytes) && (ausgStelle < feld.sz))
+            {
+                 feld[ausgStelle] = _readBuffer[_readPtr];
+                 _readPtr++;
+                 ausgStelle++;
+            }
+            return ausgStelle;
+         }
+         return -1;
+      }
+  
+  int BufferedSocket::readWord(&String_16 wort,char trenner1,char trenner2)
+  {
+      wort.clear();
+      var char z;
+      while((this.recvChar(z) == 1) && (z != trenner1) && (z != trenner2))
+      {
+          wort.append(z);
+      }
+      
+      if(wort.length() > 0) {return 1;}
+   
+      return 0;
+  }
+  
+  
+  int BufferedSocket::send(&String_16 str)
+  {
+      var char puffer[1000];
+      var int stelle = 0;
+      var int l = str.length();
+      while(stelle < l)
+      {
+          var int i=0;
+          while((stelle < l) && (i < 1000)) 
+          {
+             puffer[i] = str.getAt(stelle);
+             i++;
+             stelle++;
+          }
+          var int ret  = this.send(puffer,i);
+          if(ret < 0){ return ret; }
+      }
+      return 1;
+  }
+  
+    
+    int BufferedSocket::send(&char outbuf[],int valid)
+    {
+        var int optr=0;
+        do
+        {
+           var int frei=_writeBuffer.sz-_validWriteBytes;
+           var int i;
+           for(i=0;(i<frei) && (optr<valid);i++)
+           {
+               _writeBuffer[i+_validWriteBytes]=outbuf[optr];
+               optr++;
+           }
+           _validWriteBytes=_validWriteBytes+i;
+           if(_validWriteBytes == _writeBuffer.sz)
+           {
+              if(_socket.send(_writeBuffer,_writeBuffer.sz)!=_validWriteBytes)
+              {return -2;}
+              _validWriteBytes=0;
+           }
+        }while(valid != optr);
+        return 1;
+    }
+    
+    int BufferedSocket::send(*char outbuf[],int valid)
+    {
+        var char buffer[1024];
+        var int optr=0;
+        while(optr<valid)
+        {
+           var int optr2=0;
+           while((optr2<buffer.sz) && (optr<valid))
+           {
+               buffer[optr2]=outbuf[optr];
+               optr2++;
+               optr++;
+           }
+           var int ret=this.send(buffer,optr2);
+           if(ret != 1){return ret;}
+        }
+        return 1;
+    }
+    
+    int BufferedSocket::flush()
+    {
+        if(_socket.send(_writeBuffer,_validWriteBytes)!=_validWriteBytes)
+        {return -3;}
+        _validWriteBytes = 0;
+        return 1;
+    }
+
+ int BufferedSocket::isConnected()
+ {
+    if(_socket==NULL){return 0;}
+    return _socket.isConnected();
+ }
+ 
+ 
+ Socket::~Socket()
+ {
+    this.close();
+ }
+
+
+void Socket::gegenseite(&String_16 adresse)
+{
+    adresse.clear();
+    inline_cpp[[
+       struct sockaddr_in peer;
+       int peer_len;
+       peer_len = sizeof(peer);
+       char sStack[1];
+       if (getpeername(_handle, (sockaddr*)&peer, (socklen_t*)&peer_len) == -1) 
+       {
+           perror("getpeername() failed");
+           return;
+       }
+       const char* s = "unbekannt"; //inet_ntoa(peer.sin_addr);
+       int portNr = ntohs(peer.sin_port);
+       int i;
+       for(i=0; (i < 100) && (s[i] != 0); i++)
+       {
+           char z = s[i];
+           adresse.append(sStack,z);
+       }
+    ]]
+}
+
+void BufferedSocket::gegenseite(&String_16 adresse)
+{
+   _socket.gegenseite(adresse);
+}

@@ -1,0 +1,92 @@
+
+
+void SchluesselWerkzeuge::wandle(&char eingabe[],int stelleAnfang, &longlong ausgabe)
+{
+   var int stelleEnde = stelleAnfang + 8;
+
+   ausgabe = cast(longlong,0);
+   for(var int i=stelleAnfang ; i < stelleEnde; i++)
+   {
+       var longlong oktetLL = cast(longlong, (eingabe[i]) );
+       oktetLL = oktetLL & 0xFF;
+       ausgabe = ausgabe | (oktetLL << ((i-stelleAnfang) *8));
+   }
+}
+
+void SchluesselWerkzeuge::wandle(&char eingabe[],int stelleAnfang, &int ausgabe)
+{
+   var int stelleEnde = stelleAnfang + 4;
+
+   ausgabe = 0;
+   for(var int i=stelleEnde - 1; i >= stelleAnfang; i = i - 1)
+   {
+       ausgabe = ausgabe | (cast(int,eingabe[i]) & 0xFF); 
+       if( i > stelleAnfang) 
+       {
+          ausgabe = ausgabe << 8;
+       }
+   }
+}
+
+void SchluesselWerkzeuge::wandle(&longlong eingabe[],&char ausgabe[],int ausgabeZeiger)
+{
+    for(var int i=0; i < eingabe.sz; i++)
+    { 
+       var longlong wort = eingabe[i];
+       for(var int j=0; j < 8; j++)
+       {
+          ausgabe[ausgabeZeiger] = cast(char, (wort & 0xFF) );
+          ausgabeZeiger++;
+          wort = wort >> 8;
+       } 
+    }
+}
+
+void SchluesselWerkzeuge::wandle2(&longlong eingabe[],*char ausgabe[],int ausgabeZeiger)
+{
+    for(var int i=0; i < eingabe.sz; i++)
+    { 
+       var longlong wort = eingabe[i];
+       for(var int j=0; j < 8; j++)
+       {
+          ausgabe[ausgabeZeiger] = cast(char, (wort & 0xFF) );
+          ausgabeZeiger++;
+          wort = wort >> 8;
+       } 
+    }
+}
+
+void SchluesselWerkzeuge::wandle(int eingabe,&char ausgabe[],int ausgabeZeiger)
+{
+   for(var int i=0; i < 4; i++)
+   {
+      ausgabe[ausgabeZeiger] =  cast(char, (eingabe & 0xFF) );
+      ausgabeZeiger++;
+      eingabe = eingabe >> 8;
+   }
+}
+
+
+void SchluesselWerkzeuge::drucke(&char puffer[], int stelle, int anzahl)
+{
+   var PrintfClass pfc;
+   var int ende = stelle + anzahl;
+   for(var int i=stelle; i < ende; i++)
+   {
+      pfc.fstr("$ ").saHex(puffer[i]).prNoLF();
+   }
+   pfc.fstr("").pr();
+}
+
+void SchluesselWerkzeuge::drucke(*char puffer[], int stelle, int anzahl)
+{
+   var PrintfClass pfc;
+   var int ende = stelle + anzahl;
+   for(var int i=stelle; i < ende; i++)
+   {
+      pfc.fstr("$ ").saHex(puffer[i]).prNoLF();
+   }
+   pfc.fstr("").pr();
+}
+
+
