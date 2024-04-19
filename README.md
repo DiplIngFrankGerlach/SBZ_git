@@ -10,10 +10,10 @@ Prinzip aufzeigen.
 
 Benutzung: 
 
-##Auf dem RZ-Rechner:
+## Auf dem RZ-Rechner:
 $ ./sbz server VogelweideSchillerGoetheUlmIlmenauKiel
 
 
-##Auf dem Arbeitsrechner:
+## Auf dem Arbeitsrechner:
 $ ./sbz client meinServer.de VogelweideSchillerGoetheUlmIlmenauKiel "ps -ef"
 
