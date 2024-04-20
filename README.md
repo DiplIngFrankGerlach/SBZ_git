@@ -30,6 +30,20 @@ localhost:8111,WasserfallEisenachVogelweideMartellBarbarossaRommel
 $ ./sbz server 8111
 ```
 
+## Quelle
+SBZ wurde von Dipl. Ing. Frank Gerlach (http://di-fg.de) entwickelt.
+
+## Nutzungsbedingungen
+
+1.) SBZ darf für nichtkommerzielle Zwecke kostenlos eingesetzt werden.
+
+2.) Kommerzielle Nutzung erfordert eine Lizenz des Autors Frank Gerlach.
+
+3.) Der Nutzer verpflichtet sich, keine Schadenersatzansprüche wegen
+    Programmierfehlern innerhalb von SBZ zu stellen. Es handelt sich
+    bisher um einen Protoyp.
+
+
 
 ## Auf dem Arbeitsrechner:
 ```
