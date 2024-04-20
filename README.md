@@ -11,11 +11,12 @@ Prinzip aufzeigen.
 
 Benutzung: 
 
+Folgende Schlüsseldatei muß auf Server und Client installiert sein:
 $ cat ~/.sbz/Schluessel.csv
 ```
-di-fg.de:8111,WasserfallEisenachVogelweideKaltWunnensteinZugspitze
-localhost:8111,WasserfallEisenachVogelweideKaltWunnensteinZugspitze
-8111,WasserfallEisenachVogelweideKaltWunnensteinZugspitze
+di-fg.de:8111,WasserfallEisenachVogelweideMartellBarbarossaRommel
+localhost:8111,asserfallEisenachVogelweideMartellBarbarossaRommel
+8111,asserfallEisenachVogelweideMartellBarbarossaRommel
 ```
 
 ## Auf dem RZ-Rechner:
