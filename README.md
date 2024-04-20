@@ -14,7 +14,9 @@ Benutzung:
 $ cat ~/.sbz/Schluessel.csv
 
 di-fg.de:8111,WasserfallEisenachVogelweideKaltWunnensteinZugspitze
+
 localhost:8111,WasserfallEisenachVogelweideKaltWunnensteinZugspitze
+
 8111,WasserfallEisenachVogelweideKaltWunnensteinZugspitze
 
 ## Auf dem RZ-Rechner:
