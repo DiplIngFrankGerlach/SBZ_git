@@ -6,15 +6,21 @@ Sappeur-Quellcode. OpenSSH ist dagegen 143636 Zeilen C-Quellcode.
 
 Durch diesen geringen Umfang von SBZ ist eine Untersuchung auf Fehler leicht möglich.
 
-Die Version 1.0 ist ein Technologie-Demonstrator und soll vor allem das
+Die Version 1.1 ist ein Technologie-Demonstrator und soll vor allem das
 Prinzip aufzeigen. 
 
 Benutzung: 
 
+$ cat ~/.sbz/Schluessel.csv
+
+di-fg.de:8111,WasserfallEisenachVogelweideKaltWunnensteinZugspitze
+localhost:8111,WasserfallEisenachVogelweideKaltWunnensteinZugspitze
+8111,WasserfallEisenachVogelweideKaltWunnensteinZugspitze
+
 ## Auf dem RZ-Rechner:
-$ ./sbz server VogelweideSchillerGoetheUlmIlmenauKiel
+$ ./sbz server 8111
 
 
 ## Auf dem Arbeitsrechner:
-$ ./sbz client meinServer.de VogelweideSchillerGoetheUlmIlmenauKiel "ps -ef"
+$ ./sbz client meinServer.de:8111  "ps -ef"
 
