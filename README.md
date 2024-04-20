@@ -1,3 +1,6 @@
+![Bundesflagge](https://de.wikipedia.org/wiki/Flagge_Deutschlands#/media/Datei:Flag_of_Germany.svg)
+
+
 # SBZ
 
 Sichere Befehlszeile ist eine hochsichere Alternative zur Secure Shell (SSH).
