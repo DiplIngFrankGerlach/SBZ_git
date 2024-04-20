@@ -37,13 +37,13 @@ $ ./sbz client meinServer.de:8111  "ps -ef"
 
 
 ## Quelle
-SBZ wurde von Dipl. Ing. Frank Gerlach (http://di-fg.de) entwickelt.
+SBZ wurde von Dipl. Ing. Frank Gerlach (http://di-fg.de) in Brackenheim, Württmberg, Deutschland entwickelt.
 
 ## Nutzungsbedingungen
 
 1.) SBZ darf für nichtkommerzielle Zwecke kostenlos eingesetzt werden.
 
-2.) Kommerzielle Nutzung erfordert eine Lizenz des Autors Frank Gerlach.
+2.) Kommerzielle Nutzung erfordert einen schriftlichen Lizenzvertrag mit Frank Gerlach.
 
 3.) Der Nutzer verpflichtet sich, keine Schadenersatzansprüche wegen
     Programmierfehlern innerhalb von SBZ zu stellen. Es handelt sich
