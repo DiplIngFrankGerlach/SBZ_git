@@ -12,17 +12,21 @@ Prinzip aufzeigen.
 Benutzung: 
 
 Folgende Schlüsseldatei muß auf Server und Client installiert sein:
-$ cat ~/.sbz/Schluessel.csv
 ```
+$ cat ~/.sbz/Schluessel.csv
 di-fg.de:8111,WasserfallEisenachVogelweideMartellBarbarossaRommel
 localhost:8111,WasserfallEisenachVogelweideMartellBarbarossaRommel
 8111,WasserfallEisenachVogelweideMartellBarbarossaRommel
 ```
 
 ## Auf dem Rechenzentrums-Rechner
+```
 $ ./sbz server 8111
+```
 
 
 ## Auf dem Arbeitsrechner:
+```
 $ ./sbz client meinServer.de:8111  "ps -ef"
+```
 
