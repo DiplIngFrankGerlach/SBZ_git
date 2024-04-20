@@ -37,7 +37,7 @@ $ ./sbz client meinServer.de:8111  "ps -ef"
 
 
 ## Quelle
-SBZ wurde von Dipl. Ing. Frank Gerlach (http://di-fg.de) in Brackenheim, Württmberg, Deutschland entwickelt.
+SBZ wurde von Dipl. Ing. Frank Gerlach (http://di-fg.de) in Brackenheim, Württemberg, Deutschland entwickelt.
 
 ## Nutzungsbedingungen
 
