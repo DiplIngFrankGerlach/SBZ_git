@@ -11,7 +11,7 @@ Prinzip aufzeigen.
 
 Benutzung: 
 
-Folgende Schlüsseldatei muß auf Server und Client installiert sein:
+Folgende Schlüsseldatei muß auf Server und Client installiert sein(server, port und Schlüssel unbedingt ändern)
 ```
 $ cat ~/.sbz/Schluessel.csv
 di-fg.de:8111,WasserfallEisenachVogelweideMartellBarbarossaRommel
