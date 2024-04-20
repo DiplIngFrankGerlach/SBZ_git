@@ -151,6 +151,7 @@ void TCPServerWorker::threadMain()
                         ausgabePufferStr.append(&sp,ausgabePuffer); 
                      }
                   }
+                  fclose(ausgabeStrom);
                ]]
                pfc.fstr("ausgabePufferStr: $").sa(ausgabePufferStr).pr();
                for(var int i=0; i < ausgabePufferStr.length(); i++)

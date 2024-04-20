@@ -115,7 +115,7 @@ int Main::main()
 
    pfc.fstr("Sichere Befehlszeile(sbz), Copyright Frank Gerlach 2024").pr();
    pfc.fstr("Commercial use requires a written license statement from the author").pr();
-   pfc.fstr("Version 1.1").pr();
+   pfc.fstr("Version 1.2").pr();
    pfc.fstr("Benutzung: sbz ((client serverName:port Befehl+ )|(server port))").pr();
    pfc.fstr("Usage 1: sbz \"client\" serverName:port Command+").pr();
    pfc.fstr("Usage 2: sbz \"server\" port").pr();
