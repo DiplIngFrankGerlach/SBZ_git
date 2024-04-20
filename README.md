@@ -19,7 +19,7 @@ localhost:8111,WasserfallEisenachVogelweideMartellBarbarossaRommel
 8111,WasserfallEisenachVogelweideMartellBarbarossaRommel
 ```
 
-## Auf dem RZ-Rechner:
+## Auf dem Rechenzentrums-Rechner
 $ ./sbz server 8111
 
 
