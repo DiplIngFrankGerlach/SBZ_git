@@ -6,7 +6,9 @@ Sichere Informatik aus Deutschland
 
 Sichere Befehlszeile ist eine hochsichere Alternative zur Secure Shell (SSH).
 Im Gegensatz zu SSH ist SBZ ein minimalistisches System von nur 5662 Zeilen
-Sappeur-Quellcode. OpenSSH ist dagegen 143636 Zeilen C-Quellcode.
+Sappeur-Quellcode. OpenSSH ist dagegen 143636 Zeilen C-Quellcode. Wesentlich
+geringere Größe bedeutet auch wesentlich weniger Angriffsfläche für 
+kybernetische Angreifer.
 
 Durch diesen geringen Umfang von SBZ ist eine Untersuchung auf Fehler leicht möglich.
 
