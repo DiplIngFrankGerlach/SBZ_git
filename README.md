@@ -30,6 +30,12 @@ localhost:8111,WasserfallEisenachVogelweideMartellBarbarossaRommel
 $ ./sbz server 8111
 ```
 
+## Auf dem Arbeitsrechner:
+```
+$ ./sbz client meinServer.de:8111  "ps -ef"
+```
+
+
 ## Quelle
 SBZ wurde von Dipl. Ing. Frank Gerlach (http://di-fg.de) entwickelt.
 
@@ -45,8 +51,4 @@ SBZ wurde von Dipl. Ing. Frank Gerlach (http://di-fg.de) entwickelt.
 
 
 
-## Auf dem Arbeitsrechner:
-```
-$ ./sbz client meinServer.de:8111  "ps -ef"
-```
 
