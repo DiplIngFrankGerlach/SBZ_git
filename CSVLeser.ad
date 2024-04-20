@@ -1,0 +1,23 @@
+
+
+enum CSVZustand{CSV_Spalte, CSV_Escaped, CSV_EscapedHyphen };
+
+
+
+class CSVLeser
+{
+   SPRFile* datei;
+   char trenner;
+   CSVZustand zustand;
+   char jetzigesZeichen;
+   int leseErfolg;
+methods:
+    CSVLeser(&String_16 dateiname,char i_trenner);
+
+    int leseZeile(&String_16 zeile[],&int anzSpalten);
+
+    int dateiOffen();
+
+    static void UnitTest();    
+    static void UnitTest2();    
+};

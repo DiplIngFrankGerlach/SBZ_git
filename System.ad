@@ -79,6 +79,13 @@ methods:
    PrintfClass();
 };
 
+
+class Umgebung
+{
+methods:
+   static void leseVariable(&String_16 varName,&int erfolg,&String_16 wert);
+};
+
 enum SPRFile_Mode { SF_Readonly, SF_ReadWrite, SF_ReadWriteTruncated };
 
 

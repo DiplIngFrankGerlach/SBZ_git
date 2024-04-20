@@ -1,32 +1,77 @@
 
 
+void Main::leseSchluessel(&String_16 serverUndPort,&int erfolgSchl, &String_16 Schluessel)
+{
+   erfolgSchl = 0;
+   var String_16 heimatVerz;
+   var String_16 varName("HOME");
+   var int erfolg;
+   Umgebung::leseVariable(varName,erfolg, heimatVerz);
+   if( erfolg == 1 )
+   {
+      var String_16 schluesselDateiName(heimatVerz);
+      schluesselDateiName.append("/.sbz/Schluessel.csv");
+      var CSVLeser cvl(schluesselDateiName,',');
+      if(cvl.dateiOffen() == 1)
+      {
+         var String_16 zeile[2];
+         var int anzSpalten;
+         while( cvl.leseZeile(zeile,anzSpalten) == 1) 
+         { 
+            //pfc.fstr("$ $").sa(zeile[0]).sa(zeile[1]).pr();
+            if(zeile[0].equals(serverUndPort) == 1) 
+            {
+               Schluessel.assign(zeile[1]);   
+               erfolgSchl = 1;
+            }
+         }
+      }
+   }
+}
+
+
 int Main::main()
 { 
-   var PrintfClass pfc;
    var CommandlineArgs cla;
-
    if(cla.numberOfArguments() >= 3)
    {
       var String_16 betriebsArt;
       cla.getArgument(1,betriebsArt);
       if(betriebsArt.equals("server") == 1)
       {
-         var TCPServer server(8111);
+         var String_16 port;
+         cla.getArgument(2,port);
+         var TCPServer server(port.asNumber());
          server.setLogLevel(3);
          server.run();
          return 1;
       }
       else
       {
-         if(cla.numberOfArguments() >= 5)
+         if(cla.numberOfArguments() >= 4)
          {
-            var String_16 server;
-            cla.getArgument(2,server);
+            var String_16 serverUndPort; 
+            cla.getArgument(2,serverUndPort);
+
+            var *String_16 sup[] = new String_16[2];
+            if( serverUndPort.teileAuf(sup,':') != 1)
+            {
+               pfc.fstr("kann server und port nicht lesen").pr();
+               return -1;
+            }
+              
             var String_16 Schluessel;
-            cla.getArgument(3,Schluessel);
+            var int erfolg;
+            Main::leseSchluessel(serverUndPort,erfolg,Schluessel);
+            if(erfolg != 1)
+            {
+               pfc.fstr("konnte Schluessel nicht finden. Ende.").pr();
+               return -1;
+            }
+
 
             var String_16 befehlsSatz;
-            var int j=4; 
+            var int j=3; 
             var int na = cla.numberOfArguments();
             var int nam1 = na - 1;
             while(j < na )
@@ -39,7 +84,7 @@ int Main::main()
             }
             
          
-            var BufferedSocket* clientBsock = new BufferedSocket(server,8111);
+            var BufferedSocket* clientBsock = new BufferedSocket(sup[0],sup[1].asNumber());
             var GesicherteVerbindung gv(Schluessel,clientBsock,10000);
             //gv.setzeLogLevel(3);
 
@@ -60,7 +105,7 @@ int Main::main()
                empfangen.append(c);
             }            
             empfangen.append(c);
-            pfc.fstr("empfangen:$").sa(empfangen).pr();
+            pfc.fstr("$").sa(empfangen).pr();
             return 1;
             
          }
@@ -70,10 +115,10 @@ int Main::main()
 
    pfc.fstr("Sichere Befehlszeile(sbz), Copyright Frank Gerlach 2024").pr();
    pfc.fstr("Commercial use requires a written license statement from the author").pr();
-   pfc.fstr("Version 1.0").pr();
-   pfc.fstr("Benutzung: sbz ((client serverName Schluessel Befehl+ )|(server Schluessel))").pr();
-   pfc.fstr("Usage 1: sbz \"client\" serverName Key Command+").pr();
-   pfc.fstr("Usage 2: sbz \"server\" Key").pr();
+   pfc.fstr("Version 1.1").pr();
+   pfc.fstr("Benutzung: sbz ((client serverName:port Befehl+ )|(server port))").pr();
+   pfc.fstr("Usage 1: sbz \"client\" serverName:port Command+").pr();
+   pfc.fstr("Usage 2: sbz \"server\" port").pr();
    
 
    return -1;   

@@ -79,6 +79,18 @@ void TCPServerWorker::threadMain()
    
    logLevel = 0;
 
+   var String_16 port;
+   var CommandlineArgs cla;
+   cla.getArgument(2,port);
+   var int erfolg;
+   var String_16 schluessel;
+   Main::leseSchluessel(port,erfolg,schluessel);
+   if(erfolg != 1)
+   {
+      pfc.fstr("konnte Schluessel nicht lesen. Ende.").pr();
+      return ;
+   }
+
    while(1==1)
    {
      if(logLevel >= 2) { pfc.fstr("SBZ Worker working\n").pr(); }
@@ -88,13 +100,11 @@ void TCPServerWorker::threadMain()
      
      var BufferedSocket* bsock = new BufferedSocket(sock);
 
-     var String_16 schluessel;
 
-     var CommandlineArgs cla;
      var String_16 betriebsArt;
      if(cla.numberOfArguments() == 3)
      {
-         cla.getArgument(2,schluessel);
+
                                
          var GesicherteVerbindung gv(schluessel,bsock,10000);
 

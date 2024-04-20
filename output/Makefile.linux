@@ -3,7 +3,12 @@
 #please rename this file. It will be overwritten on the
 #next sappeur compiler run.
 
-OBJECTS=placementNew.o staticData.o determStackMemory.o suchoi.o TCP.o FranksFeistel2.o String.o TcpServer.o SchluesselWerkzeuge.o AppMain.o GesicherteVerbindung.o StringUtil.o System.o generative_impls.o mapping.o main.o threadFunctions.o
+OBJECTS=placementNew.o staticData.o determStackMemory.o suchoi.o TCP.o \
+        FranksFeistel2.o String.o TcpServer.o SchluesselWerkzeuge.o    \
+        AppMain.o GesicherteVerbindung.o StringUtil.o System.o         \
+        generative_impls.o mapping.o main.o threadFunctions.o CSVLeser.o
+
+
 TCP.o:TCP.cpp
 FranksFeistel2.o:FranksFeistel2.cpp
 String.o:String.cpp

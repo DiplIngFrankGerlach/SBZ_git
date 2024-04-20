@@ -1334,3 +1334,32 @@ void Benutzer_Umschalter::UnitTest()
      pfc.fstr("Benutzer_Umschalter::UnitTest() Fehler 2").pr();
    }
 }
+
+void Umgebung::leseVariable(&String_16 varNameStr,&int erfolg, &String_16 wertStr)
+{
+   erfolg = 0;
+   inline_cpp[[
+       char varName[300];
+       char sp('x');
+       int j=0;
+       while( (j < 299) && ( j < varNameStr.length(&sp) ) ) 
+       { 
+          varName[j] = varNameStr.getAt(&sp,j);
+          j++;
+       }
+       varName[j] = '\\0';
+       const char* wert = getenv(varName);
+       if( wert != NULL)
+       {
+          int i=0;
+          while( (i < 1000) && (wert[i] != '\\0') )
+          {
+             wertStr.append(&sp,wert[i]);
+             i++;
+          } 
+          if( i < 1000){ erfolg = 1; }
+          else { erfolg = 0; }
+       }
+   ]]
+}
+

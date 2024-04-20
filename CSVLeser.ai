@@ -1,0 +1,206 @@
+
+
+CSVLeser::CSVLeser(&String_16 dateiname,char i_trenner)
+{
+    trenner = i_trenner;
+    var char fileBuf[1024];
+    if( dateiname.length() < 1023)
+    {
+       var int i=0;
+       while(i < dateiname.length())
+       {
+          fileBuf[i] = dateiname.getAt(i);
+          i++;
+       }
+       fileBuf[i] = cast(char,0);
+       datei = new SPRFile(fileBuf,1);
+    }
+    leseErfolg = datei.readChar(jetzigesZeichen);
+}
+
+int CSVLeser::dateiOffen()
+{
+   return leseErfolg;
+}
+
+int CSVLeser::leseZeile(&String_16 zeile[],&int anzSpalten)
+{
+   if(leseErfolg < 1)
+   {
+       return -1;
+   }
+   var int spalte = 0;
+   zeile[0].clear();
+   var int res;
+   var PrintfClass pfc;
+   zustand = CSV_Spalte;
+   var int anfang = 1;
+   do
+   {
+      anfang = 0; 
+      //pfc.fstr(">>spalte $").sa(spalte).pr();
+      switch(zustand)
+      {
+           case CSV_Spalte:
+           {
+             switch(jetzigesZeichen)
+             {
+                case '"':
+                {   
+                    leseErfolg = datei.readChar(jetzigesZeichen);
+                    if(leseErfolg == -1)
+                    {
+                        return -1;
+                    } 
+                    if(jetzigesZeichen == '"')
+                    {
+                       zeile[spalte].append('"');
+                       leseErfolg = datei.readChar(jetzigesZeichen);
+                       if(leseErfolg == -1)
+                       {
+                          anzSpalten = spalte + 1; 
+                          return -1;
+                       } 
+                    }
+                    else { zustand = CSV_Escaped; }
+                };
+                break;
+                case '\n':
+                {  
+                    anzSpalten = spalte + 1; 
+                    leseErfolg = datei.readChar(jetzigesZeichen);
+                    return 1; 
+                };
+                break;
+                default:
+                {   
+                    if(jetzigesZeichen == trenner)
+                    {
+                       leseErfolg = datei.readChar(jetzigesZeichen);
+                       spalte++;
+                       if(spalte < zeile.sz)
+                       {
+                           zeile[spalte].clear();
+                       }
+                       else { return -1; }
+                       if(leseErfolg == -1)
+                       {
+                           anzSpalten = spalte + 1; 
+                           return 1;
+                       } 
+                    }
+                    else
+                    {
+                       //pfc.fstr("append").pr();
+                       zeile[spalte].append(jetzigesZeichen);
+                       leseErfolg = datei.readChar(jetzigesZeichen);
+                       if(leseErfolg == -1)
+                       {
+                           anzSpalten = spalte + 1; 
+                           return 1;
+                       } 
+                    }
+                };
+             }
+           };
+           break;
+           case CSV_Escaped:
+           {
+             if( jetzigesZeichen != '"' )
+             {
+                 zeile[spalte].append(jetzigesZeichen);
+                 leseErfolg = datei.readChar(jetzigesZeichen);
+                 if(leseErfolg == -1)
+                 {
+                     anzSpalten = spalte + 1; 
+                     return 1;
+                 } 
+             }
+             else 
+             { 
+                // '"' gelesen
+                leseErfolg = datei.readChar(jetzigesZeichen);
+                if(leseErfolg == -1)
+                {
+                     anzSpalten = spalte + 1; 
+                     return 1;
+                } 
+                if(jetzigesZeichen == '"')
+                {
+                    zeile[spalte].append('"');
+                    leseErfolg = datei.readChar(jetzigesZeichen);
+                    if(leseErfolg == -1)
+                    {
+                       anzSpalten = spalte + 1; 
+                       return 1;
+                    } 
+                }
+                else { zustand = CSV_Spalte; }
+             }
+           };
+           break;
+      }          
+      
+   }
+   while(1 == 1);
+   
+   return -1;//Schnuller
+}
+
+
+void CSVLeser::UnitTest()
+{
+    var String_16 fn("../test1.csv");
+    var CSVLeser cl(fn,';');
+    var String_16 zeile[3];  
+    var PrintfClass pfc;
+    var int anz;
+    while(cl.leseZeile(zeile,anz)== 1)
+    { 
+        pfc.fstr(">>>leseZeile $").sa(anz).pr();
+        if(anz == 3 )
+        {
+           pfc.fstr("$ $ $").sa(zeile[0]).sa(zeile[1]).sa(zeile[2]).pr();
+        }
+    }
+    pfc.fstr("CSVLeser::UnitTest() erfolgreich").pr();
+}
+void CSVLeser::UnitTest2()
+{
+    var String_16 fn("../test2.csv");
+    var CSVLeser cl(fn,';');
+    var String_16 zeile[3];  
+    var PrintfClass pfc;
+    var int anz;
+    var int zeilenNr = 0;
+    while(cl.leseZeile(zeile,anz)== 1)
+    { 
+        //pfc.fstr(">>>leseZeile $").sa(anz).pr();
+        if(anz == 3 )
+        {
+           pfc.fstr("$ $ $").sa(zeile[0]).sa(zeile[1]).sa(zeile[2]).pr();
+        }
+        if(zeilenNr == 1837)
+        {
+            if( (zeile[0].equals("Eva112")!=1) || 
+                (zeile[1].equals("112")!=1)    || 
+                (zeile[2].equals("Florian")!=1)    )
+            {
+               pfc.fstr("Fehler 1 in CSVLeser::UnitTest2()").pr();
+               return;
+            }
+        }
+        if(zeilenNr == 3)
+        {
+            if( (zeile[0].equals("Adam3")!=1) || 
+                (zeile[1].equals("103")!=1)    || 
+                (zeile[2].equals("Baum3")!=1)    )
+            {
+               pfc.fstr("Fehler 2 in CSVLeser::UnitTest2()").pr();
+               return;
+            }
+        }
+        zeilenNr++;
+    }
+    pfc.fstr("CSVLeser::UnitTest2() erfolgreich").pr();
+}
