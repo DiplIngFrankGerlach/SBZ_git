@@ -47,7 +47,7 @@ SBZ wurde von Dipl. Ing. Frank Gerlach (http://di-fg.de) in Brackenheim, Württe
 
 3.) Der Nutzer verpflichtet sich, keine Schadenersatzansprüche wegen
     Programmierfehlern innerhalb von SBZ zu stellen. Es handelt sich
-    bisher um einen Protoyp.
+    bisher um einen Prototyp.
 
 
 
