@@ -1,33 +1,44 @@
-#this file has been generated automatically by the
-#sappeur compiler. If you want to change anything,
-#please rename this file. It will be overwritten on the
-#next sappeur compiler run.
 
-OBJECTS=placementNew.o staticData.o determStackMemory.o suchoi.o TCP.o \
-        FranksFeistel2.o String.o TcpServer.o SchluesselWerkzeuge.o    \
-        AppMain.o GesicherteVerbindung.o StringUtil.o System.o         \
-        generative_impls.o mapping.o main.o threadFunctions.o CSVLeser.o
+OBJECTS=  AppMain.o CSVLeser.o FranksFeistel2.o GesicherteVerbindung.o \
+          SchluesselWerkzeuge.o Strings.o StringUtil.o System.o TCP.o TcpServer.o \
+          mapping.o main.o \
+          ZKNuetzlich.o \
+          SchluesselWerkzeuge.o \
+          determStackMemory_AppMain.ai.o \
+          determStackMemory_CSVLeser.ai.o \
+          determStackMemory_Hashtables.ai.o \
+          determStackMemory_Math.ai.o \
+          determStackMemory_Strings.ai.o \
+          determStackMemory_System.ai.o \
+          determStackMemory_TCP.ai.o \
+          determStackMemory_ZKNuetzlich.ai.o \
+          determineStackMemoryNeeds.o \
+          placementNewClasses_AppMain.ai.o \
+          placementNewClasses_CSVLeser.ai.o \
+          placementNewClasses_Hashtables.ai.o \
+          placementNewClasses_Math.ai.o \
+          placementNewClasses_Strings.ai.o \
+          placementNewClasses_System.ai.o \
+          placementNewClasses_TCP.ai.o \
+          placementNewClasses_ZKNuetzlich.ai.o \
+          determStackMemory_CSVLeser.ai.o \
+          determStackMemory_FranksFeistel2.ai.o \
+          determStackMemory_GesicherteVerbindung.ai.o \
+          determStackMemory_Hashtables.ai.o \
+          determStackMemory_SchluesselWerkzeuge.ai.o \
+          determStackMemory_Strings.ai.o \
+          determStackMemory_StringUtil.ai.o \
+          determStackMemory_TcpServer.ai.o 
 
 
-TCP.o:TCP.cpp
-FranksFeistel2.o:FranksFeistel2.cpp
-String.o:String.cpp
-TcpServer.o:TcpServer.cpp
-SchluesselWerkzeuge.o:SchluesselWerkzeuge.cpp
-AppMain.o:AppMain.cpp
-GesicherteVerbindung.o:GesicherteVerbindung.cpp
-StringUtil.o:StringUtil.cpp
-System.o:System.cpp
 
 
-$(OBJECTS):header.h
-header.h:mapping.h
 CC = g++
-VPATH=/home/frank/Sappeur30/haupt//cppMapping
+VPATH=/home/frank/Sappeur4x/ausg/haupt/cppMapping
 
-INCLUDE=-I/usr/include/unicode -I/home/frank/Sappeur30/haupt//cppMapping -I. -I.. 
+INCLUDE=-I/usr/include/unicode -I/home/frank/Sappeur4x/ausg/haupt/cppMapping -I. -I.. -I/usr/local/include/
 
-LDLIBS=-lstdc++ -lm
+LDLIBS=-lstdc++ -lm /usr/lib/libtls/libtls.a
 .SUFFIXES: .o .cpp
 OPT=-g
 MISC_OPT=-DSPR_USE_PTHREAD_MUTEX_LOCKS=1 -DLINUX_SAPPEUR=1 -DSPR_DEBUG=1 -DSPR_PTHREAD=1 -pthread
@@ -36,4 +47,4 @@ MISC_OPT=-DSPR_USE_PTHREAD_MUTEX_LOCKS=1 -DLINUX_SAPPEUR=1 -DSPR_DEBUG=1 -DSPR_P
 all:$(OBJECTS)
 	$(CC) $(OPT) $(MISC_OPT) -o sbz $^ $(LDLIBS)
 clean:
-	rm *.o sprprog.exe
+	rm *.o sbz
