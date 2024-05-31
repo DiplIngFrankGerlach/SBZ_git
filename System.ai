@@ -1,6 +1,8 @@
-
-//File Version:2.1
-   
+Import{
+  "Strings.ad",
+  "System.ad",
+  "AlphabeticSorter.ad"
+} 
     
 ThreadInfo::ThreadInfo()
 {
@@ -76,10 +78,9 @@ void ThreadInfo::join()
 {
    var char buffer[17];
    inline_cpp[[
-      snprintf(buffer._array,17,"%016llx",(unsigned long long)number);
+      snprintf(buffer._array,17,"%.16llx",(unsigned long long)number);
    ]]
    this.sa(buffer);
-   
    return thisref;
 }
 
@@ -432,6 +433,43 @@ int SPRFile::write(int pos,int count,*char buffer[])
      ret=_write(_handle,buffer._theObject->_array,count);
    ]]      
    return ret;
+}
+
+//write 'count' bytes at position 'pos' into 'buffer'
+//returns the number of bytes actually written, if successful
+//        a negative number if an error occured
+
+int SPRFile::write64(longlong pos,int count,&char buffer[])
+{
+   if(_handle<0){return _handle;}
+   var int ret;
+   var int oktetsGeschrieben = 0;
+   inline_cpp[[
+     
+     #ifdef __CYGWIN__
+     if(::lseek(_handle,(off_t)pos,SEEK_SET)!=pos)
+     {
+        perror("SPRFile::write64()/lseek");
+        return -1;
+     }
+     #else
+     if(::lseek64(_handle,pos,SEEK_SET)!=pos)
+     {
+        perror("SPRFile::write64()/lseek");
+        return -1;
+     }
+     #endif
+     while(oktetsGeschrieben < count )
+     {
+        ret=_write(_handle,buffer._array,count);
+        if( ret > 0 )
+        {
+           oktetsGeschrieben = oktetsGeschrieben + ret;
+        }
+        else { return -1;}
+     }
+   ]]
+   return oktetsGeschrieben;
 }
 
 int SPRFile::schreibeAlles(*char buffer[],int stelleEingabe, int stelleAusgabe, int anzahl)
@@ -903,28 +941,22 @@ void AlphabeticSorter::test()
     }
 }
 
-
-
-
-
-
 longlong SystemTime::getMillisecondCounter()
 {
     var longlong ms;
-    inline_cpp[[   	 
-      struct timeval currentTime;
-      gettimeofday(&currentTime, NULL);
+    inline_cpp[[
+       struct timeval currentTime;
+       gettimeofday(&currentTime, NULL);
 
-      // Extract seconds and microseconds
-      time_t seconds = currentTime.tv_sec;
-      suseconds_t microseconds = currentTime.tv_usec;
-      ms = seconds;
-      ms = ms * 1000;
-      ms = ms + (microseconds / 1000);
-    ]]   
-    return ms; 
+       // Extract seconds and microseconds
+       time_t seconds = currentTime.tv_sec;
+       suseconds_t microseconds = currentTime.tv_usec;
+       ms = seconds;
+       ms = ms * 1000;
+       ms = ms + (microseconds / 1000);
+    ]]
+    return ms;
 }
-
 
 int CommandlineArgs::numberOfArguments()
 {
@@ -1334,6 +1366,7 @@ void Benutzer_Umschalter::UnitTest()
      pfc.fstr("Benutzer_Umschalter::UnitTest() Fehler 2").pr();
    }
 }
+
 
 void Umgebung::leseVariable(&String_16 varNameStr,&int erfolg, &String_16 wertStr)
 {

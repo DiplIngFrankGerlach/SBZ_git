@@ -1,4 +1,8 @@
-
+Import{
+  "Strings.ad",
+  "System.ad",
+  "FranksFeistel2.ad"
+}
 
 
 FranksFeistel2::FranksFeistel2(int anzahlRunden_i)

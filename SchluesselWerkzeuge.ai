@@ -1,4 +1,9 @@
-
+Import
+{
+   "Strings.ad",
+   "System.ad",
+   "SchluesselWerkzeuge.ad"
+}
 
 void SchluesselWerkzeuge::wandle(&char eingabe[],int stelleAnfang, &longlong ausgabe)
 {

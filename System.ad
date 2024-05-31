@@ -121,6 +121,8 @@ methods:
    int write(int pos,int count,&char buffer[]);
    int write(int pos,int count,*char buffer[]);
 
+   int write64(longlong pos,int count,&char buffer[]);
+
    int schreibeAlles(*char buffer[],int stelleEingabe, int stelleAusgabe, int anzahl);
    
    //get the current size of the file

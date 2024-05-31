@@ -54,33 +54,22 @@ compile ZKNuetzlich.ai
 
 compile CSVLeser.ai 
 
-compile BMP_Erzeuger.ai 
-
-compile Cookie.ai 
-
-compile FunktionalRechner.ai 
-
 compile Hashtables.ai 
 
 compile Math.ai 
 
-compile Scanner.ai 
-
 compile TCP.ai 
 
-compile URLDecoder.ai 
+compile FranksFeistel2.ai
 
-compile URLPruefer.ai 
+compile GesicherteVerbindung.ai
 
-compile UnitTestHashtable.ai 
+compile SchluesselWerkzeuge.ai
 
-compile UnitTest_hrq.ai 
+compile StringUtil.ai
 
-compile ZeitUndDatum.ai 
+compile TcpServer.ai
 
-compile http_request_parser.ai 
-
-compile shttpd.ai 
 
 
 
@@ -95,6 +84,12 @@ erzeugeStackMemoryBestimmung
 # baue die sizeof-Defines zu einer einzigen Header-Datei um
 ###########################################################
 erzeugeSizeofHeader
+
+
+###################################################################################################################
+# baue die Stapel-Tiefen-Bestimmung
+###########################################################
+erzeugeDetStackNeeds
 
 ###################################################################################################################
 # Beende den Sappeur Coordinator 

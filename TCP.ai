@@ -1,3 +1,11 @@
+Import
+{
+   "Strings.ad",
+   "System.ad",
+   "TCP.ad"
+
+}
+
 
 Socket::Socket(int handle)
 {
@@ -14,8 +22,76 @@ int Socket::connectTLS(&String_16 host, int port)
 {
   var char hostPuffer[256];
   host.toCharArray(hostPuffer);
-  //GELOESCHT !
-  return 1;//Erfolg
+  inline_cpp[[
+        struct tls_config *cfg = NULL;
+	struct tls *ctx = NULL;
+	uint8_t *mem;
+	size_t mem_len;
+	ssize_t writelen;
+	unsigned char buf[BUFSIZ] = "Hello libtls.";
+
+	/*
+	** initialize libtls
+	*/
+
+	if (tls_init() != 0)
+        {
+           perror("tls_init");
+           return -1;
+        }
+
+	/*
+	** configure libtls
+	*/
+
+	if ((cfg = tls_config_new()) == NULL)
+        {
+           perror("tls_config_new");
+           return -2;
+        }
+
+	/* set root certificate (CA) */
+	if (tls_config_set_ca_file(cfg, "root_certificates.pem") != 0)
+        {
+            perror("tls_config_set_ca_file:");
+            return -3;
+        }
+
+	/*
+	** initiate client context
+	*/
+
+	if ((tlsConnection = tls_client()) == NULL)
+        {
+            perror("tls_client");
+            return -4;
+        }
+
+	/*
+	** apply config to context
+	*/
+
+	if (tls_configure(tlsConnection, cfg) != 0)
+        {
+           char meldung[200];
+           snprintf(meldung,200,"tls_configure: %s", tls_error(ctx));
+           perror(meldung);
+           return -5;
+        }
+
+	/*
+	** connect to server
+	*/
+
+	if (tls_connect(tlsConnection,hostPuffer._array, "443") != 0)
+        {
+           char meldung[200];
+           snprintf(meldung,200, "tls_connect: %s", tls_error(ctx));
+           perror(meldung);
+           return -6;
+        }
+   ]]
+   return 1;//Erfolg
 }
 
 /* setze die Abbruchzeit auf 30s ohne Verkehr */
@@ -58,6 +134,7 @@ int Socket::recv(&char buffer[],int maxCount)
      }
      else
      { 
+         ret = tls_read(tlsConnection,buffer._array,maxCount);
      }
    ]]
    return ret;
@@ -77,6 +154,7 @@ int Socket::recv(*char buffer[],int maxCount)
      }
      else
      { 
+         ret = tls_read(tlsConnection,buffer._theObject->_array,maxCount);
      }
    ]]
    return ret;
@@ -100,6 +178,7 @@ int Socket::send(&char buffer[],int count)
         }
         else
         {
+           ret2 = tls_write(tlsConnection,buffer._array+ret,count-ret); 
         }
         if(ret2<=0)
         {
@@ -130,6 +209,7 @@ int Socket::send(*char buffer[],int count)
         }
         else
         {
+           ret2 = tls_write(tlsConnection,buffer._theObject->_array+ret,count-ret);
         }
         if(ret2<=0)
         {
@@ -145,6 +225,8 @@ int Socket::send(*char buffer[],int count)
 void Socket::close()
 {
     inline_cpp[[
+       tls_free(tlsConnection);
+       tlsConnection = NULL;
        #ifdef WIN32_X86
           shutdown(_handle,0);
        #endif 
@@ -494,7 +576,6 @@ int Socket::isConnected()
     {
         if(_socket.send(_writeBuffer,_validWriteBytes)!=_validWriteBytes)
         {return -3;}
-        _validWriteBytes = 0;
         return 1;
     }
 
@@ -524,7 +605,7 @@ void Socket::gegenseite(&String_16 adresse)
            perror("getpeername() failed");
            return;
        }
-       const char* s = "unbekannt"; //inet_ntoa(peer.sin_addr);
+       char* s = inet_ntoa(peer.sin_addr);
        int portNr = ntohs(peer.sin_port);
        int i;
        for(i=0; (i < 100) && (s[i] != 0); i++)

@@ -1,7 +1,20 @@
-
+Import
+{
+   "Strings.ad",
+   "System.ad",
+   "CSVLeser.ad",
+   "TCP.ad",
+   "TcpServer.ad",
+   "FranksFeistel2.ad",
+   "GesicherteVerbindung.ad",
+   "AppMain.ad"
+}
 
 void Main::leseSchluessel(&String_16 serverUndPort,&int erfolgSchl, &String_16 Schluessel)
 {
+   var PrintfClass pfc2;
+
+
    erfolgSchl = 0;
    var String_16 heimatVerz;
    var String_16 varName("HOME");

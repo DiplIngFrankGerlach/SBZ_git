@@ -15,6 +15,7 @@
 #######################################
 compile()
 {
+    echo "Uebersetze $1"
     ${SPR_VERZ}/compiler/SPRcomp $1 -outputPath output -operatingSystem Linux -sappeurDirectory ${SPR_VERZ} 
 }
 
@@ -101,60 +102,12 @@ erzeugeGenerischeKlassen()
 }
 
 ###################################################################################################################
-# Rufe den Sappeur Compiler 
-###########################
-
-#parallele Kompilierung abgeschaltet:
-#compileAllImpls `ls *ai`
-#exit 1
-
-
-compile AppMain.ai
-
-compile System.ai
-
-compile Strings.ai 
-
-compile ZKNuetzlich.ai 
-
-compile CSVLeser.ai 
-
-compile BMP_Erzeuger.ai 
-
-compile Cookie.ai 
-
-compile FunktionalRechner.ai 
-
-compile Hashtables.ai 
-
-compile Math.ai 
-
-compile Scanner.ai 
-
-compile TCP.ai 
-
-compile URLDecoder.ai 
-
-compile URLPruefer.ai 
-
-compile UnitTestHashtable.ai 
-
-compile UnitTest_hrq.ai 
-
-compile ZeitUndDatum.ai 
-
-compile http_request_parser.ai 
-
-compile shttpd.ai 
-
-
-
-###################################################################################################################
 # erzeuge die Stack Memory Bestimmung
 #####################################
 
 erzeugeStackMemoryBestimmung()
 {
+   echo "erzeugeStackMemoryBestimmung"
    # Schritt 1
    egrep SPR_BESTIMME_MAXIMALE_STACK_GROESSE_FUNKTION output/determStackMemory_*cpp |\
           cut -d ":" -f2|cut -d " " -f2|sed "s/$/;/g"|sed "s/^/extern void /g" > output/determineStackMemoryNeeds.cpp
@@ -179,7 +132,14 @@ erzeugeSizeofHeader()
    mv  /tmp/SappeurSizeofTemp_$$ output/sizeofAlle.h
 }
 
-###################################################################################################################
-# Beende den Sappeur Coordinator 
-################################
-killCoordinator
+
+erzeugeDetStackNeeds()
+{
+   egrep SPR_BESTIMME_MAXIMALE_STACK_GROESSE_FUNKTION output/determStackMemory_*cpp |\
+         cut -d ":" -f2|cut -d " " -f2|sed "s/$/;/g"|sed "s/^/extern void /g" > output/determineStackMemoryNeeds.cpp
+   echo "void determineStackNeeds()" >> output/determineStackMemoryNeeds.cpp
+   echo "{" >> output/determineStackMemoryNeeds.cpp
+   egrep SPR_BESTIMME_MAXIMALE_STACK_GROESSE_FUNKTION output/determStackMemory_*cpp |\
+         cut -d ":" -f2|cut -d " " -f2|sed "s/$/;/g" >> output/determineStackMemoryNeeds.cpp
+   echo "}" >> output/determineStackMemoryNeeds.cpp
+}
