@@ -1,0 +1,39 @@
+
+
+class dllexport_a AlphaEntry{
+   char _c;
+   int _order;
+   methods:
+   AlphaEntry();
+};
+
+
+class AlphabeticSorter
+{
+   AlphaEntry _alphabet[36];
+  methods:
+   AlphabeticSorter();
+   int isBelow(&char a[],&char b[]);
+   int isBelow(String_16* a,String_16* b);
+
+
+   int isBelow(String_16* wordlist[],int index,String_16* pivot);
+
+   int isAbove(String_16* wordlist[],int index,String_16* pivot);
+
+   int ordinal(char c);
+
+   void qsort(String_16* wordlist[],int lower, int upper);
+
+   void qsort(&int liste[],int start,int end);
+
+   int elemAt(&int liste[],int pos);
+
+   int elemAt(String_16* liste[],int pos);
+
+   int isAboveOrEqualPivot (String_16* liste[],int pos,String_16* pivot);
+
+   int isBelowOrEqualPivot (String_16* liste[],int pos,String_16* pivot);
+
+   void test();
+};

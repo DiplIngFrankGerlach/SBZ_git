@@ -1,0 +1,170 @@
+Import{ "Strings.ad", "ZKNuetzlich.ad", "System.ad" }
+
+
+int ZKNuetzlich::istLeerzeichen(char c)
+{
+   switch( cast(int,c) )
+   {
+       case 32:
+       case 9:
+       case 10:
+       case 13:
+          { return 1; };
+       break;
+       default:
+          { return 0; };
+   }
+   return 0;//wird nie erreicht, Compiler will aber ein return sehen 
+}
+
+
+int ZKNuetzlich::istZiffer(char z)
+{
+   switch(z)
+   {
+       case '0':
+       case '1':
+       case '2':
+       case '3':
+       case '4':
+       case '5':
+       case '6':
+       case '7':
+       case '8':
+       case '9':{ return 1;};break;
+   }
+   return 0;
+}
+
+
+void ZKNuetzlich::wandle(longlong zahl,int basis,&String_16 ziel)
+{
+   var longlong llNull = cast(longlong,0);
+   var int istNegativ = 0;
+   if( zahl < llNull) 
+   {
+      zahl = zahl * cast(longlong,-1);
+      istNegativ = 1;
+   }
+
+   if(basis > 36 ) 
+   {
+       ziel.append("BasisTooBig");
+       return ;
+   }
+  
+
+   if(  zahl < llNull)
+   {
+       ziel.append("tooBig");
+       return ;
+   }
+
+   var int z0 = cast(int,'0');
+   var int zA = cast(int,'A');
+
+   var char puffer[66];
+   var int stelle = 0;
+   if( (stelle == 0) && (zahl == llNull) )
+   {
+       puffer[0] = '0';
+       stelle++;
+   }
+   while( zahl > llNull )
+   {
+       var int ziffer = cast(int,zahl % basis); 
+
+       if( ziffer < 10 )
+       {
+	   puffer[stelle] = cast(char,(ziffer+z0));
+       }
+       else
+       {
+	   puffer[stelle] = cast(char,((ziffer - 10)+zA)) ;
+       }
+       zahl = zahl / basis;
+       stelle++; 
+   }
+   //ziel.ensureCapacity(ziel.length() + stelle + 1); 
+   if( istNegativ )
+   {
+       ziel.append('-');
+   }
+   for(var int i=stelle - 1;  i >=0; i=i - 1)
+   {
+       ziel.append(puffer[i]);
+   }
+}
+
+
+void ZKNuetzlich::appendInAnfz(&String_16 zk,int x)
+{
+    zk.append('"');
+    zk.append(x);
+    zk.append('"');
+}
+
+
+
+
+
+void ZKNuetzlich::UnitTest(&int ergebnisUT)
+{
+ var PrintfClass pfc;
+ var String_16 s("123444443232222");
+ var longlong ergebnis;
+ ZKNuetzlich::strNachLonglong(s,ergebnis);
+
+ var longlong vergleich;
+ vergleich = cast(longlong,123444);
+ vergleich = vergleich * 1000000000;
+ vergleich = vergleich +  443232222; 
+
+ if(ergebnis != vergleich)
+ {
+    pfc.fstr("ZKNuetzlich::UnitTest() 1 failed").pr();
+    ergebnisUT =  -1;
+    return;
+ }
+ s.assign("1");
+ ZKNuetzlich::strNachLonglong(s,ergebnis);
+ vergleich = cast(longlong,1);
+ if(ergebnis != vergleich)
+ {
+    pfc.fstr("ZKNuetzlich::UnitTest() 2 failed").pr();
+    ergebnisUT = -1;
+    return;
+ }
+ s.assign("1000000000000");
+ ZKNuetzlich::strNachLonglong(s,ergebnis);
+ vergleich = cast(longlong,1000000000);
+ vergleich = vergleich * 1000;
+ if(ergebnis != vergleich)
+ {
+    pfc.fstr("ZKNuetzlich::UnitTest() 3 failed").pr();
+    ergebnisUT = -1;
+    return;
+ }
+ pfc.fstr("ZKNuetzlich::UnitTest erfolgreich").pr();
+ ergebnisUT = 1;
+}
+ 
+void ZKNuetzlich::strNachLonglong(&String_16 eingabe,&longlong ausgabe)
+{
+     ausgabe = cast(longlong,0);
+     var int egLm1 = eingabe.length() - 1;
+     for(var int i=0;i <= egLm1; i++)
+     {
+        var char zeichen = eingabe.getAt(i);
+        ausgabe = ausgabe + cast(int,zeichen) - cast(int,'0'); 
+        if( i < egLm1)
+        {
+           ausgabe = ausgabe * 10;
+        }
+     }
+}
+
+
+
+
+

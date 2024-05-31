@@ -1,0 +1,13 @@
+class ZKNuetzlich
+{
+methods:
+    int istLeerzeichen(char c);
+    int istZiffer(char z);
+    static void appendInAnfz(&String_16 zk,int x);
+
+    static void wandle(longlong zahl,int basis,&String_16 ziel);
+
+    static void UnitTest(&int ergebnis);
+
+    static void strNachLonglong(&String_16 eingabe,&longlong zeitstempel);
+};

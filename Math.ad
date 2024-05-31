@@ -1,0 +1,36 @@
+
+class Math
+{
+
+  methods:
+  //bitweise Verschiebung nach links, zirkulär
+  int shlC(int x);
+  //bitweise Verschiebung nach links, zirkulär um n bits
+  int shlC(int x,int n);
+
+  double sinus(double rad);
+
+  double asinus(double rad);
+
+  double cosinus(double rad);
+
+  double acosinus(double rad);
+
+  double tangens(double rad); 
+
+  double atangens(double rad); 
+
+  double aHochB(double a, double b);
+
+  double euler(double x);
+
+  double wurzel(double x);
+
+  double pi();
+
+  double e(); 
+
+  
+
+  void UnitTest();
+};

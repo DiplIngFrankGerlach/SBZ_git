@@ -1,0 +1,138 @@
+Import
+{
+   "Strings.ad",
+   "System.ad",
+   "Math.ad"
+}
+
+int Math::shlC(int x)
+{
+   var int i;
+   inline_cpp[[
+     int save=x&0x80000000;     
+     x=x<<1;
+     if(save != 0) x=x|1;
+   ]]
+   return x;
+}
+
+int Math::shlC(int x,int n)
+{
+   var int i;
+   inline_cpp[[
+     int linkeBits;
+     linkeBits=x>>(32-n);
+     x=x<<n;
+     x=x|linkeBits;
+   ]]
+   return x;
+}
+
+double Math::sinus(double rad)
+{
+   var double y;
+   inline_cpp[[
+       y = sin(rad);
+   ]]
+   return y;
+}
+
+double Math::asinus(double rad)
+{
+   var double y;
+   inline_cpp[[
+       y = asin(rad);
+   ]]
+   return y;
+}
+
+double Math::cosinus(double rad)
+{
+   var double y;
+   inline_cpp[[
+       y = cos(rad);
+   ]]
+   return y;
+}
+
+double Math::acosinus(double rad)
+{
+   var double y;
+   inline_cpp[[
+       y = acos(rad);
+   ]]
+   return y;
+}
+
+double Math::tangens(double rad)
+{
+   var double y;
+   inline_cpp[[
+       y = tan(rad);
+   ]]
+   return y;
+}
+
+double Math::atangens(double rad)
+{
+   var double y;
+   inline_cpp[[
+       y = atan(rad);
+   ]]
+   return y;
+}
+
+double Math::aHochB(double a, double b)
+{
+   var double y;
+   inline_cpp[[
+       y = pow(a,b);
+   ]]
+   return y;
+}
+
+double Math::euler(double x)
+{
+   var double y;
+   inline_cpp[[
+       y = exp(x);
+   ]]
+   return y;
+}
+
+double Math::pi()
+{
+   return 3.14159265358979323846264338327950288;
+}
+
+double Math::e()
+{
+   return 2.71828182845904523536028747135266249;
+}
+
+
+//2.71828182845904523536028747135266249
+
+void Math::UnitTest()
+{
+   var PrintfClass pfc;
+   var double y = this.sinus(45.0/360.0*2.0*3.1415);
+   var double unten = 0.7070;
+   var double oben = 0.7072;
+   if( (y < unten) || (y > oben) )
+   {
+       pfc.fstr("Math::UnitTest() Fehler 1").pr();
+       return;
+   }
+   pfc.fstr("$").sa(y).pr();
+   y = y * 1000000000.0;
+   y = y * 1000000000.0;
+   y = y * 1000000000.0;
+   y = y * 1000000000.0;
+   pfc.fstr("$").sa(y).pr();
+   pfc.fstr("$").saExp(y).pr();
+   pfc.fstr("$").sa(this.e()).pr();
+   
+   pfc.fstr("Math::UnitTest() erfolgreich"); 
+}
+
