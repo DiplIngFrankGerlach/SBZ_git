@@ -7,6 +7,7 @@ Import
    "TcpServer.ad",
    "FranksFeistel2.ad",
    "GesicherteVerbindung.ad",
+   "UnitTestFranksFeistel2.ad",
    "AppMain.ad"
 }
 
@@ -45,7 +46,24 @@ void Main::leseSchluessel(&String_16 serverUndPort,&int erfolgSchl, &String_16 S
 
 int Main::main()
 { 
+   var int erfolg;
+   Main::leseLogLevel(debugLevel);
+
    var CommandlineArgs cla;
+   if(cla.numberOfArguments() == 1)
+   {
+      UnitTestFranksFeistel2::lauf();
+
+      for(var int i=4; i < 20; i++)
+      {
+         UnitTestFranksFeistel2::statistikTest(i);
+      }
+      for(var int i=4; i < 20; i++)
+      {
+         UnitTestFranksFeistel2::statistikTest2(i);
+      }
+      return 1;
+   }
    if(cla.numberOfArguments() >= 3)
    {
       var String_16 betriebsArt;
@@ -55,12 +73,14 @@ int Main::main()
          var String_16 port;
          cla.getArgument(2,port);
          var TCPServer server(port.asNumber());
-         server.setLogLevel(3);
+         server.setLogLevel(debugLevel);
          server.run();
          return 1;
       }
       else
       {
+         //client
+         if(debugLevel >= 2) { pfc.fstr("client Anfang").pr(); }
          if(cla.numberOfArguments() >= 4)
          {
             var String_16 serverUndPort; 
@@ -73,8 +93,8 @@ int Main::main()
                return -1;
             }
               
+            if(debugLevel >= 2) { pfc.fstr("lese Schluessel").pr(); }
             var String_16 Schluessel;
-            var int erfolg;
             Main::leseSchluessel(serverUndPort,erfolg,Schluessel);
             if(erfolg != 1)
             {
@@ -96,12 +116,20 @@ int Main::main()
                if(j < nam1) { befehlsSatz.append(" "); }
             }
             
-         
+            var String_16 server(sup[0]); 
+            var int port = sup[1].asNumber(); 
+            if(debugLevel >= 2) { pfc.fstr("versuche mit Server $ auf port $ Verbindung aufzubauen").sa(server).sa(port).pr(); }
             var BufferedSocket* clientBsock = new BufferedSocket(sup[0],sup[1].asNumber());
             var GesicherteVerbindung gv(Schluessel,clientBsock,10000);
-            //gv.setzeLogLevel(3);
+            gv.setzeLogLevel(debugLevel);
 
+            if(debugLevel >= 2) { pfc.fstr("client vor Aufbau gesicherter Verbindung").pr(); }
             gv.baueAuf();
+
+            if(debugLevel >= 3)
+            {
+                pfc.fstr("sende den Satz '$'").sa(befehlsSatz).pr();
+            }
        
             //Befehl absenden 
             for(var int i=0; i < befehlsSatz.length(); i++)
@@ -128,11 +156,33 @@ int Main::main()
 
    pfc.fstr("Sichere Befehlszeile(sbz), Copyright Frank Gerlach 2024").pr();
    pfc.fstr("Commercial use requires a written license statement from the author").pr();
-   pfc.fstr("Version 1.2").pr();
+   pfc.fstr("Version 2.0").pr();
    pfc.fstr("Benutzung: sbz ((client serverName:port Befehl+ )|(server port))").pr();
    pfc.fstr("Usage 1: sbz \"client\" serverName:port Command+").pr();
    pfc.fstr("Usage 2: sbz \"server\" port").pr();
+   pfc.fstr("Umgebungsvariable SBZ_DEBUG mit Wert 0..3 bestimmt die Menge an Meldungen zur Fehlerfindung").pr();
    
 
    return -1;   
+}
+
+void Main::leseLogLevel(&int level)
+{
+   var int erfolg;
+   var String_16 name("SBZ_DEBUG");
+   var String_16 debugWert;
+   Umgebung::leseVariable(name,erfolg,debugWert);
+   if(erfolg == 1)
+   {
+       level = debugWert.asNumber();
+       if( (level >= 0) && (level <= 3) )
+       { }
+       else
+       { 
+          var PrintfClass pfcFehler;
+          pfcFehler.fstr("debugLevel nicht im Bereich 0..3").pr();
+          var SystemControl sc;
+          sc.exit();
+       }
+   }
 }

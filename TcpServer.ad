@@ -16,6 +16,9 @@ class TCPServerWorker multithreaded
 
   
    TCPServerWorker(MutexInfo* mi,TCPServerThreadMgmt* tmgmt,int myId);
+
+   external void setLogLevel(int level);
+
    external void stop();
    external void start();
    external void threadMain();   

@@ -27,8 +27,15 @@ methods:
 
    void setzeSchluessel(&longlong schluessel_LL[]);
 
-
+   //verschluesseln im ECB Modus
    void verschluessle(&longlong links, &longlong rechts);
+   //entschluesseln im ECB Modus
+   void entschluessle(&longlong links, &longlong rechts);
+
+   //verschluesseln im ECB Modus, 16-oktet bloecke als oktet-Feld
+   void verschluessleECB(&char bloecke[],int oktets);
+   //entschluesseln im ECB Modus, 16-oktet bloecke als oktet-Feld
+   void entschluessleECB(&char bloecke[],int oktets);
 
    char gebeOktet(); //im Stromschluessel-Betrieb
 

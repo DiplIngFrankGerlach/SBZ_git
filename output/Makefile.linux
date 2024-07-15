@@ -1,44 +1,56 @@
 
-OBJECTS=  AppMain.o CSVLeser.o FranksFeistel2.o GesicherteVerbindung.o \
-          SchluesselWerkzeuge.o Strings.o StringUtil.o System.o TCP.o TcpServer.o \
-          mapping.o main.o \
-          ZKNuetzlich.o \
-          SchluesselWerkzeuge.o \
-          determStackMemory_AppMain.ai.o \
-          determStackMemory_CSVLeser.ai.o \
-          determStackMemory_Hashtables.ai.o \
-          determStackMemory_Math.ai.o \
-          determStackMemory_Strings.ai.o \
-          determStackMemory_System.ai.o \
-          determStackMemory_TCP.ai.o \
-          determStackMemory_ZKNuetzlich.ai.o \
-          determineStackMemoryNeeds.o \
-          placementNewClasses_AppMain.ai.o \
-          placementNewClasses_CSVLeser.ai.o \
-          placementNewClasses_Hashtables.ai.o \
-          placementNewClasses_Math.ai.o \
-          placementNewClasses_Strings.ai.o \
-          placementNewClasses_System.ai.o \
-          placementNewClasses_TCP.ai.o \
-          placementNewClasses_ZKNuetzlich.ai.o \
-          determStackMemory_CSVLeser.ai.o \
-          determStackMemory_FranksFeistel2.ai.o \
-          determStackMemory_GesicherteVerbindung.ai.o \
-          determStackMemory_Hashtables.ai.o \
-          determStackMemory_SchluesselWerkzeuge.ai.o \
-          determStackMemory_Strings.ai.o \
-          determStackMemory_StringUtil.ai.o \
-          determStackMemory_TcpServer.ai.o 
-
+# $ ls *cpp|sed "s/.cpp$/.o \\\\/g"
+OBJECTS=  mapping.o main.o \
+AppMain.o \
+CSVLeser.o \
+FranksFeistel2.o \
+GesicherteVerbindung.o \
+Math.o \
+SchluesselWerkzeuge.o \
+StringUtil.o \
+Strings.o \
+System.o \
+TCP.o \
+TcpServer.o \
+UnitTestFranksFeistel2.o \
+ZKNuetzlich.o \
+determStackMemory_AppMain.ai.o \
+determStackMemory_CSVLeser.ai.o \
+determStackMemory_FranksFeistel2.ai.o \
+determStackMemory_GesicherteVerbindung.ai.o \
+determStackMemory_Math.ai.o \
+determStackMemory_SchluesselWerkzeuge.ai.o \
+determStackMemory_StringUtil.ai.o \
+determStackMemory_Strings.ai.o \
+determStackMemory_System.ai.o \
+determStackMemory_TCP.ai.o \
+determStackMemory_TcpServer.ai.o \
+determStackMemory_UnitTestFranksFeistel2.ai.o \
+determStackMemory_ZKNuetzlich.ai.o \
+determineStackMemoryNeeds.o \
+placementNewClasses_AppMain.ai.o \
+placementNewClasses_CSVLeser.ai.o \
+placementNewClasses_FranksFeistel2.ai.o \
+placementNewClasses_GesicherteVerbindung.ai.o \
+placementNewClasses_Math.ai.o \
+placementNewClasses_SchluesselWerkzeuge.ai.o \
+placementNewClasses_StringUtil.ai.o \
+placementNewClasses_Strings.ai.o \
+placementNewClasses_System.ai.o \
+placementNewClasses_TCP.ai.o \
+placementNewClasses_TcpServer.ai.o \
+placementNewClasses_UnitTestFranksFeistel2.ai.o \
+placementNewClasses_ZKNuetzlich.ai.o 
 
 
 
 CC = g++
-VPATH=/home/frank/Sappeur4x/ausg/haupt/cppMapping
+HV=/home/frank
+VPATH=$(HV)/Sappeur4x/ausg/haupt/cppMapping
 
-INCLUDE=-I/usr/include/unicode -I/home/frank/Sappeur4x/ausg/haupt/cppMapping -I. -I.. -I/usr/local/include/
+INCLUDE=-I/usr/include/unicode -I$(HV)/Sappeur4x/ausg/haupt/cppMapping -I. -I.. -I/usr/local/include/
 
-LDLIBS=-lstdc++ -lm /usr/lib/libtls/libtls.a
+LDLIBS=-lstdc++ -lm  -ltls
 .SUFFIXES: .o .cpp
 OPT=-g
 MISC_OPT=-DSPR_USE_PTHREAD_MUTEX_LOCKS=1 -DLINUX_SAPPEUR=1 -DSPR_DEBUG=1 -DSPR_PTHREAD=1 -pthread

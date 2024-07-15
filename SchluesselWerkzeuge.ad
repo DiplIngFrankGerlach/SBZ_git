@@ -9,6 +9,8 @@ methods:
 
     static void wandle(&longlong eingabe[], &char ausgabe[],int ausgabeZeiger);
 
+    static void wandle(longlong eingabe, &char ausgabe[],int ausgabeZeiger);
+
     static void wandle2(&longlong eingabe[], *char ausgabe[],int ausgabeZeiger);
 
     static void wandle(int eingabe, &char ausgabe[],int ausgabeZeiger);

@@ -1,9 +1,12 @@
 class Main
 {
    PrintfClass pfc;
+   int debugLevel;//0..3, bestimmt die Menge an Tracing, wird duch Umgebungsvariable SBZ_DEBUG bestimmt
 methods:
    int main();
 
    static void leseSchluessel(&String_16 serverUndPort,&int erfolgSchluessel,&String_16 Schluessel); 
+
+   static void leseLogLevel(&int level);
 
 };

@@ -11,6 +11,7 @@ Import
 
 TCPServer::TCPServer(int port)
 {
+   Main::leseLogLevel(logLevel);
    _port=port;
 
    servs = new ServerSocket(0,_port);//verbinde mit allen Schnittstellen auf dem port
@@ -25,6 +26,7 @@ TCPServer::TCPServer(int port)
    var SemaphoreInfo* si=_tmgmtSema.getSemaphoreInfo();
    _tmgmt=new TCPServerThreadMgmt(nWorkers,si);
 
+
    
    _tmgmtSema.P();
    for(var int i=0;i<nWorkers;i++)
@@ -33,6 +35,7 @@ TCPServer::TCPServer(int port)
        _workerMutexList[i].lock();//make workers wait for work
        var MutexInfo* mi=_workerMutexList[i].getMutexInfo();
        _workerList[i]=new TCPServerWorker(mi,_tmgmt,i);
+       _workerList[i].setLogLevel(logLevel);
        var ThreadInfo* ti;
        createThread(_workerList[i],ti);
    }
@@ -77,6 +80,10 @@ void TCPServer::setLogLevel(int l)
 }
 
 
+void TCPServerWorker::setLogLevel(int l)
+{
+    logLevel = l;
+}
 
 
 void TCPServerWorker::threadMain()
@@ -87,7 +94,6 @@ void TCPServerWorker::threadMain()
    crlf.append(CR);
    crlf.append('\n');
    
-   logLevel = 0;
 
    var String_16 port;
    var CommandlineArgs cla;
@@ -98,6 +104,8 @@ void TCPServerWorker::threadMain()
    if(erfolg != 1)
    {
       pfc.fstr("konnte Schluessel nicht lesen. Ende.").pr();
+      var SystemControl sc;
+      sc.exit();
       return ;
    }
 
@@ -108,6 +116,7 @@ void TCPServerWorker::threadMain()
      mtx.lock();
      _tmgmt.getSocket(_myId,sock);
      
+     if(logLevel >= 2) { pfc.fstr("neuer Client").pr(); }
      var BufferedSocket* bsock = new BufferedSocket(sock);
 
 
@@ -116,9 +125,12 @@ void TCPServerWorker::threadMain()
      {
 
                                
+         if(logLevel >= 3) { pfc.fstr("Aufbau gesicherter Verbindung").pr(); }
          var GesicherteVerbindung gv(schluessel,bsock,10000);
+         gv.setzeLogLevel(logLevel);
 
          gv.baueAuf();
+         if(logLevel >= 3) { pfc.fstr("Gesicherte Verbindung aufgebaut").pr(); }
 
      
          var String_16 empfangen;
@@ -130,7 +142,11 @@ void TCPServerWorker::threadMain()
             {
                var char c='X';
                r = gv.empfange(c);
-               if(r < 0) { empfangen.clear();  }//falsche Pruefsumme, befehl leeren !
+               if(r < 0) 
+               { 
+                  pfc.fstr("falsche Pruefsumme, Befehl wird geloescht !").pr();
+                  empfangen.clear();  
+               }
                if( r >= 0)
                {
                  empfangen.append(c);

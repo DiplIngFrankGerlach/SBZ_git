@@ -54,8 +54,6 @@ compile ZKNuetzlich.ai
 
 compile CSVLeser.ai 
 
-compile Hashtables.ai 
-
 compile Math.ai 
 
 compile TCP.ai 
@@ -69,6 +67,8 @@ compile SchluesselWerkzeuge.ai
 compile StringUtil.ai
 
 compile TcpServer.ai
+
+compile UnitTestFranksFeistel2.ai
 
 
 

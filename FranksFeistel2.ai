@@ -1,6 +1,7 @@
 Import{
   "Strings.ad",
   "System.ad",
+  "SchluesselWerkzeuge.ad",
   "FranksFeistel2.ad"
 }
 
@@ -145,14 +146,15 @@ void FranksFeistel2::setzeSchluessel(&longlong schluessel_LL[])
   
 }
 
-/* Feistel-Verschluesselung von 128 bit */
+/* Feistel-Verschluesselung von 128 bit (ECB Modus) */
 void FranksFeistel2::verschluessle(&longlong links, &longlong rechts)
 {
    if(debug){ pfc.fstr("verschluessle eingabe: $ $").saHex(links).saHex(rechts).pr(); }
    var int modSLI = schluesselIntern.sz - 1;
    for(var int i=0; i < anzahlRunden; i=i + 2)
    {
-      if(debug){ pfc.fstr("verschluessle 1.2: $ $ $").sa( i & modSLI ).saHex(schluesselIntern[i & modSLI]).saHex(piLL[i+2]).pr(); }
+      //if(debug){ pfc.fstr("verschluessle 1.2: $ $ $").sa( i & modSLI ).saHex(schluesselIntern[i & modSLI]).saHex(piLL[i+2]).pr(); }
+      if(debug){ pfc.fstr("verschluessle 1.2: $ $ $").saHex(links).saHex(rechts).saHex(i).pr(); }
 
       links = links ^ (rechts * schluesselIntern[i & modSLI])  
                     ^ (rechts << 29) ^ (rechts >> 35) //Rotation, um Durchmischung zu garantieren
@@ -166,18 +168,59 @@ void FranksFeistel2::verschluessle(&longlong links, &longlong rechts)
       links = rechts;
       rechts = speicher;
 
+      if(debug){ pfc.fstr("verschluessle 2.0  $ $").saHex(links).saHex(rechts).pr(); }
       links = links ^ ( rechts & ( rechts >> 17) ) ^ 
                       (rechts & (rechts << 31))     ^ 
                       (rechts & schluesselIntern[i & modSLI]);
+
 
       //tausche links und rechts (Feistel-Leiter)
       speicher = links;
       links = rechts;
       rechts = speicher;
    }
-   if(debug){ pfc.fstr("verschluessle: $ $").saHex(links).saHex(rechts).pr(); }
+   if(debug){ pfc.fstr("verschluesselt: $ $").saHex(links).saHex(rechts).pr(); }
 }
 
+/* Feistel-Entschluesselung von 128 bit (ECB Modus) */
+void FranksFeistel2::entschluessle(&longlong links, &longlong rechts)
+{
+   if(debug){ pfc.fstr("entschluessle eingabe: $ $").saHex(links).saHex(rechts).pr(); }
+   var int modSLI = schluesselIntern.sz - 1;
+   for(var int i=anzahlRunden - 2; i >= 0; i=i - 2)
+   {
+      //tausche links und rechts (Feistel-Leiter)
+      var longlong speicher;
+      speicher = links;
+      links = rechts;
+      rechts = speicher;
+
+      links = links ^ ( rechts & ( rechts >> 17) ) ^ 
+                      (rechts & (rechts << 31))     ^ 
+                      (rechts & schluesselIntern[i & modSLI]);
+
+      if(debug){ pfc.fstr("entschluessle 2.0  $ $").saHex(links).saHex(rechts).pr(); }
+
+      //tausche links und rechts (Feistel-Leiter)
+      speicher = links;
+      links = rechts;
+      rechts = speicher;
+
+      //if(debug){ pfc.fstr("entschluessle 1.2: $ $ $").sa( i & modSLI ).saHex(schluesselIntern[i & modSLI]).saHex(piLL[i+2]).pr(); }
+      //if(debug){ pfc.fstr("entschluessle 1.2: links $ rechts $ $").sa( links ).saHex(rechts).pr(); }
+
+      links = links ^ (rechts * schluesselIntern[i & modSLI])  
+                    ^ (rechts << 29) ^ (rechts >> 35) //Rotation, um Durchmischung zu garantieren
+                    ^ (rechts << 51) ^ (rechts >> 13) 
+                    ^ piLL[i+2];//ensure that zeroed input will become non zero
+                    
+      if(debug){ pfc.fstr("entschluessle 2: $ $ $").saHex(links).saHex(rechts).saHex(i).pr(); }
+
+
+
+   }
+   if(debug){ pfc.fstr("entschluessle: $ $").saHex(links).saHex(rechts).pr(); }
+}
 
 
 
@@ -201,6 +244,53 @@ char FranksFeistel2::gebeOktet()
    //if(debug){pfc.fstr("gebeOktet $").saHex(oktet).pr(); }
    return oktet;
 }
+
+void FranksFeistel2::verschluessleECB(&char bloecke[],int oktets)
+{
+   var int rest16 = oktets & 0xF;
+   if( rest16 != 0 )
+   {
+       pfc.fstr("laenge der Eingabe kein Vielfaches von 16").pr();
+       var SystemControl sc;
+       sc.exit();
+   }
+   var int oktetsD16 = oktets >> 4;
+   for(var int i=0; i < oktetsD16; i++)
+   {
+     var longlong links;
+     var longlong rechts;
+     SchluesselWerkzeuge::wandle(bloecke,i*16,links);
+     SchluesselWerkzeuge::wandle(bloecke,(i*16) + 8,rechts);
+
+     this.verschluessle(links, rechts);
+     SchluesselWerkzeuge::wandle(links,bloecke,i*16);
+     SchluesselWerkzeuge::wandle(rechts,bloecke,(i*16) + 8);
+   }
+}
+
+void FranksFeistel2::entschluessleECB(&char bloecke[],int oktets)
+{
+   var int rest16 = oktets & 0xF;
+   if( rest16 != 0 )
+   {
+       pfc.fstr("laenge der Eingabe kein Vielfaches von 16").pr();
+       var SystemControl sc;
+       sc.exit();
+   }
+   var int oktetsD16 = oktets >> 4;
+   for(var int i=0; i < oktetsD16; i++)
+   {
+     var longlong links;
+     var longlong rechts;
+     SchluesselWerkzeuge::wandle(bloecke,i*16,links);
+     SchluesselWerkzeuge::wandle(bloecke,(i*16) + 8,rechts);
+
+     this.entschluessle(links, rechts);
+     SchluesselWerkzeuge::wandle(links,bloecke,i*16);
+     SchluesselWerkzeuge::wandle(rechts,bloecke,(i*16) + 8);
+   }
+}
+
 
 
 FeistelHash::FeistelHash(int runden)
@@ -265,3 +355,7 @@ void FeistelHash::ergebnis(&longlong summe[])
 
     for(var int i=0;i < 4;i++) { summe[i] = hashZustand[i]; }
 }
+
+
+
+

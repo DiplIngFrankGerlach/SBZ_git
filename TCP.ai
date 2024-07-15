@@ -575,7 +575,11 @@ int Socket::isConnected()
     int BufferedSocket::flush()
     {
         if(_socket.send(_writeBuffer,_validWriteBytes)!=_validWriteBytes)
-        {return -3;}
+        {
+           _validWriteBytes = 0;
+            return -3;
+        }
+        _validWriteBytes = 0;
         return 1;
     }
 

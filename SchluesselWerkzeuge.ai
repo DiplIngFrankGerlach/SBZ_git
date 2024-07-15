@@ -47,6 +47,17 @@ void SchluesselWerkzeuge::wandle(&longlong eingabe[],&char ausgabe[],int ausgabe
     }
 }
 
+void SchluesselWerkzeuge::wandle(longlong eingabe,&char ausgabe[],int ausgabeZeiger)
+{
+       for(var int j=0; j < 8; j++)
+       {
+          ausgabe[ausgabeZeiger] = cast(char, (eingabe & 0xFF) );
+          ausgabeZeiger++;
+          eingabe = eingabe >> 8;
+       } 
+}
+
+
 void SchluesselWerkzeuge::wandle2(&longlong eingabe[],*char ausgabe[],int ausgabeZeiger)
 {
     for(var int i=0; i < eingabe.sz; i++)
