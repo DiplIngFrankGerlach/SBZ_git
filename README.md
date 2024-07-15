@@ -12,8 +12,8 @@ kybernetische Angreifer.
 
 Durch diesen geringen Umfang von SBZ ist eine Untersuchung auf Fehler leicht möglich.
 
-Die Version 1.1 ist ein Technologie-Demonstrator und soll vor allem das
-Prinzip aufzeigen. 
+In der Version 2.0 wurden wesentliche Fehler behoben. U.a. wurde zum Austausch des
+Sitzungsschlüssels auf ECB umgestellt.
 
 Benutzung: 
 
