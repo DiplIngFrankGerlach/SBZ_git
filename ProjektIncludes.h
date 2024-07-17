@@ -9,7 +9,6 @@
     #include <sys/socket.h>
     #include <netinet/in.h>
     #include <arpa/inet.h>
-    #include "tls.h"
 
     void* SPRGeneratedStartThread_TCPServerWorker(void* iThreadParam);
 

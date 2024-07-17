@@ -1,0 +1,169 @@
+Import
+{
+   "Strings.ad",
+   "System.ad",
+   "FranksFeistel2.ad",
+   "UnitTestFranksFeistel2.ad"
+}
+
+void UnitTestFranksFeistel2::lauf()
+{
+   var FranksFeistel2 ff(16);
+
+   ff.setzeSchluessel("AlleMeineEntchenSchwimmenAufDemSee");
+
+
+   var PrintfClass pfc;
+   var longlong links =  0x12345678abcdefaa;
+   var longlong rechts = 0xaabbccdd12345678;
+
+   pfc.fstr("klartext: $ $").saHex(links).saHex(rechts).pr();
+   ff.verschluessle(links,rechts);
+
+   pfc.fstr("verschluesselt: $ $").saHex(links).saHex(rechts).pr();
+
+   ff.entschluessle(links,rechts);
+
+   pfc.fstr("entschluesselt: $ $").saHex(links).saHex(rechts).pr();
+
+   if(links != 0x12345678abcdefaa)
+   {
+      pfc.fstr("UnitTestFranksFeistel2::lauf() Fehler 1.1").pr();
+      return;
+   }
+   if(rechts != 0xaabbccdd12345678)
+   {
+      pfc.fstr("UnitTestFranksFeistel2::lauf() Fehler 1.2").pr();
+      return;
+   }
+
+   //Teste ECB mit oket-Puffer
+   var char puffer[48];
+
+   for(var int i=0; i < puffer.sz; i++)
+   {
+      puffer[i] = cast(char, ( cast(int,'A') + i) );
+   }
+
+   ff.verschluessleECB(puffer,puffer.sz);
+
+   //pfc.fstr("verschluesselt: ").pr();
+   for(var int i=0; i < puffer.sz; i++)
+   {
+       pfc.fstr("$ ").sa(cast(int,puffer[i])).prNoLF();
+   }
+   pfc.fstr("").pr();
+
+   ff.entschluessleECB(puffer,puffer.sz);
+
+   for(var int i=0; i < puffer.sz; i++)
+   {
+       //pfc.fstr("$ ").sa(cast(int,puffer[i])).prNoLF();
+       var char testChar = cast( char, (cast(int,'A') + i) );
+       if( testChar != puffer[i])
+       {
+          pfc.fstr("Fehler 2 in UnitTestFranksFeistel2::lauf()").pr();
+          return;
+       }
+   }
+   //pfc.fstr("").pr();
+}
+
+
+
+///////////////////////////////////////////////////////////////////////
+//Statistik Test
+///////////////////////////////////////////////////////////////////////
+void UnitTestFranksFeistel2::statistikTest(int runden)
+{
+   var PrintfClass pfc;
+   pfc.fstr("runden: $").sa(runden).pr();
+   var int n = 0xFFFFF;
+
+   var *int streuFeld[] = new int[n+1];
+   for(var int i=0; i < streuFeld.sz;i++) { streuFeld[i] = 0; }
+
+   var FranksFeistel2 ff(runden);
+   ff.setzeSchluessel("AlleMeineEntchenSchwimmenAufDemSee");
+   for(var int i=0; i < streuFeld.sz;i++) 
+   { 
+        var longlong links = cast(longlong,0);
+        var longlong rechts = cast(longlong,i); 
+        ff.verschluessle(links, rechts);
+        //pfc.fstr("$ $ $").sa(i).saHex(links).saHex(rechts).pr();
+        if(links < 0) { links = links * -1; }
+        streuFeld[links & n ]++; 
+   }
+
+   var int histogramm[257];
+   for(var int i=0; i < histogramm.sz; i++) { histogramm[i] = 0; } 
+
+   for(var int i=0; i < streuFeld.sz;i++) 
+   { 
+        if(streuFeld[i] < 256)
+        { histogramm[streuFeld[i]]++; }
+        else
+        { histogramm[256]++; }
+   } 
+   //for(var int i=0; i < histogramm.sz; i++) { 
+   for(var int i=0; i < 15; i++) { 
+     pfc.fstr("histo: $ $").sa(i).sa(histogramm[i]).pr();
+   } 
+}
+
+///////////////////////////////////////////////////////////////////////
+//Statistik Test 2 (nutzung der Oktet-Schnittstelle)
+///////////////////////////////////////////////////////////////////////
+void UnitTestFranksFeistel2::statistikTest2(int runden)
+{
+   var PrintfClass pfc;
+   pfc.fstr("runden: $").sa(runden).pr();
+   var int n = 0xFFFFF;
+
+   var *int streuFeld[] = new int[n+1];
+   for(var int i=0; i < streuFeld.sz;i++) { streuFeld[i] = 0; }
+
+   var FranksFeistel2 ff(runden);
+   ff.setzeSchluessel("AlleMeineEntchenSchwimmenAufDemSee");
+   var char klartext[16];
+   for(var int i=0; i < klartext.sz; i++) { klartext[i] = '\0'; }
+   for(var int i=0; i < streuFeld.sz;i++) 
+   { 
+        klartext[0] =  cast(char,  i);
+        klartext[7] =  cast(char, (i>>8));
+        klartext[14] = cast(char, (i>>16));
+
+        /*pfc.fstr("Klartext:").prNoLF();
+        for(var int j=0; j < klartext.sz; j++) { pfc.fstr("$ ").saHex(klartext[j]).prNoLF(); }
+        pfc.fstr("").pr();*/
+
+        ff.verschluessleECB(klartext,16);
+
+        /*pfc.fstr("Schluesseltext:").prNoLF();
+        for(var int j=0; j < klartext.sz; j++) { pfc.fstr("$ ").saHex(klartext[j]).prNoLF(); }
+        pfc.fstr("").pr();*/
+       
+        var int stelle = cast(int, klartext[1]);
+        //pfc.fstr("stelle 0: $").saHex(stelle).pr();
+        stelle = (stelle << 8) ^ cast(int,klartext[2]);
+        //pfc.fstr("stelle 1: $").saHex(stelle).pr();
+        stelle = (stelle << 8) ^ cast(int,klartext[3]);
+        //pfc.fstr("stelle 2: $").saHex(stelle).pr();
+        streuFeld[stelle & n ]++; 
+   }
+
+   var int histogramm[257];
+   for(var int i=0; i < histogramm.sz; i++) { histogramm[i] = 0; } 
+
+   for(var int i=0; i < streuFeld.sz;i++) 
+   { 
+        if(streuFeld[i] < 256)
+        { histogramm[streuFeld[i]]++; }
+        else
+        { histogramm[256]++; }
+   } 
+   //for(var int i=0; i < histogramm.sz; i++) { 
+   for(var int i=0; i < 15; i++) { 
+     pfc.fstr("statistikTest2 histo : $ $").sa(i).sa(histogramm[i]).pr();
+   } 
+}

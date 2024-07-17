@@ -1,0 +1,9 @@
+
+
+class UnitTestFranksFeistel2
+{
+methods:
+   static void statistikTest(int runden);
+   static void statistikTest2(int runden);
+   static void lauf();
+};
