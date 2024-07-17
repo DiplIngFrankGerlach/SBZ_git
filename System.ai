@@ -2,7 +2,9 @@ Import{
   "Strings.ad",
   "System.ad",
   "AlphabeticSorter.ad"
-} 
+}
+//File Version:2.1
+   
     
 ThreadInfo::ThreadInfo()
 {
@@ -212,8 +214,8 @@ void PrintfClass::pr()
      var int lFstr=_fstr.length();
      while(lFstr > _fstrIdx)
      {
-   	 _outBuf.append(_fstr.getAt(_fstrIdx));
-   	 _fstrIdx++;
+       _outBuf.append(_fstr.getAt(_fstrIdx));
+       _fstrIdx++;
      }
      _outBuf.print();
 }
@@ -223,8 +225,8 @@ void PrintfClass::prNoLF()
      var int lFstr=_fstr.length();
      while(lFstr > _fstrIdx)
      {
-   	 _outBuf.append(_fstr.getAt(_fstrIdx));
-   	 _fstrIdx++;
+       _outBuf.append(_fstr.getAt(_fstrIdx));
+       _fstrIdx++;
      }
      _outBuf.printNoLF();
 }
@@ -234,6 +236,11 @@ void PrintfClass::prHex(char x)
    inline_cpp[[
      printf("%.2x",128+(unsigned int)x);
    ]] 
+}
+
+void PrintfClass::pr(&char text[])
+{
+   this.fstr(text).pr();
 }
 
 
@@ -272,6 +279,10 @@ void ThreadLocalStorage::setEntry(int id,ThreadLocalStorageEntry* entry)
 SPRFile::SPRFile(&char path[],int readonly)
 {
    _handle = -1;
+   _validBytes=0;
+   _readPtr=0;
+   _fpos=0;
+   
    this.oeffne(path,readonly,0);
 }
 
@@ -279,6 +290,10 @@ SPRFile::SPRFile(&char path[],int readonly)
 SPRFile::SPRFile(&String_16 pfad,int readonly)
 {
    _handle = -1;
+   _validBytes=0;
+   _readPtr=0;
+   _fpos=0;
+   
    var char puffer[400];
    pfad.toCharArray(puffer);
    this.oeffne(puffer,readonly,0);
@@ -289,6 +304,9 @@ SPRFile::SPRFile(&String_16 pfad,int readonly)
 SPRFile::SPRFile()
 {
    _handle = -1;
+   _validBytes=0;
+   _readPtr=0;
+   _fpos=0;   
 }
 
 int SPRFile::oeffne(&String_16 dateiName,SPRFile_Mode modus)
@@ -339,7 +357,6 @@ int SPRFile::oeffne(&char path[],int readonly,int neueLoeschen)
         }
         if(_handle<0)
         {
-           //perror("SPRFile::SPRFile() 1");
            //printf("filename:%s\n",path._array);
            return 0;
         }
@@ -361,8 +378,10 @@ int SPRFile::read(int pos,int count,&char buffer[])
    var int ret;
    inline_cpp[[
      _lseek(_handle,pos,SEEK_SET);
-     if(buffer._sz<count)
+     if(buffer._sz < count)
+     {
        count=buffer._sz;
+     }
      ret=_read(_handle,buffer._array,count);//no ampersand here !!
    ]]
    return ret;
@@ -375,8 +394,10 @@ int SPRFile::read(int pos,int count,*char buffer[])
    var int ret;
    inline_cpp[[
      _lseek(_handle,pos,SEEK_SET);
-     if(buffer._theObject->_sz<count)
+     if(buffer._theObject->_sz < count)
+     {
        count=buffer._theObject->_sz;
+     }
      ret=_read(_handle,&buffer._theObject->_array,count);
    ]]
    return ret;
@@ -445,13 +466,9 @@ int SPRFile::write64(longlong pos,int count,&char buffer[])
    var int ret;
    var int oktetsGeschrieben = 0;
    inline_cpp[[
-     
      #ifdef __CYGWIN__
-     if(::lseek(_handle,(off_t)pos,SEEK_SET)!=pos)
-     {
-        perror("SPRFile::write64()/lseek");
-        return -1;
-     }
+        cerr << "SPRFile::write64() not supported on cygwin" << endl;
+        exit(-1);
      #else
      if(::lseek64(_handle,pos,SEEK_SET)!=pos)
      {
@@ -585,19 +602,19 @@ int SPRFile::readChar(&char out)
        _readPtr=0;
        _fpos=0;
     }
-    if(_validBytes<=_readPtr)
+    if(_validBytes <= _readPtr)
     {
        _validBytes=this.read(_fpos,_readBuffer.sz,_readBuffer);
-       if(_validBytes==0)
+       if(_validBytes == 0)
        {
           return 0;
        }
-       if(_validBytes<0)
+       if(_validBytes < 0)
        {
           return  -1;
        }
-       _readPtr=0;
-       _fpos=_fpos+_validBytes;
+       _readPtr = 0;
+       _fpos = _fpos + _validBytes;
     }
     out=_readBuffer[_readPtr];
     _readPtr++;
@@ -606,54 +623,65 @@ int SPRFile::readChar(&char out)
    
    
    
-void SPRFile::__test()
+void SPRFile::UnitTest()
 {   
     var PrintfClass pfc;
-    var SPRFile f("c:\\temp\\spr_test_file.txt",0);
-    f.write(0,10,"0123456789");
-    if(f.size()!=10){pfc.fstr("SPRFile::__test() step 1 failed$\n").sa("").pr();}
+    var SPRFile f;
+    f.oeffne("/tmp/spr_test_file.txt",0,1);//Datei auf Laenge Null setzen, falls vorhanden
+    
+    f.write(0,10,"0123456789");    
+    if(f.size() != 10){ pfc.pr("SPRFile::UnitTest() step 1 failed"); return; }
+    
     f.write(10,10,"0123456789");       
-    if(f.size()!=20){pfc.fstr("SPRFile::__test() step 2 failed$\n").sa("").pr();}
-    for(var int i=0;i<1000;i++)
+    
+    if(f.size() != 20){ pfc.pr("SPRFile::UnitTest() step 2 failed"); return; }
+    
+    for(var int i=0;i < 1000;i++)
     {
         f.write(i*20+20,20,"abcdefghijklmnopqrst");
     }
-    if(f.size()!=20020)
+    if(f.size() != 20020)
     {
-        pfc.fstr("SPRFile::__test() step 3 failed$\n").sa("").pr();
+        pfc.pr("SPRFile::UnitTest() step 3 failed");
+        return;
     }
     
-    for(var int i=0;i<10;i++)
+    for(var int i=0;i < 10;i++)
     {
        var char buf[2];
        f.read(i,1,buf);
        var char c=cast(char,i+cast(int,'0'));
        if(buf[0] != c)
        {
-          pfc.fstr("SPRFile::__test() step 4 failed$\n").sa("").pr();
+          pfc.fstr("SPRFile::UnitTest() step 4 failed").pr();
        }
     }
-    for(var int i=0;i<10;i++)
+    for(var int i=0;i < 10;i++)
     {
        var char buf[2];
        f.read(i+10,1,buf);
        var char c=cast(char,i+cast(int,'0'));
        if(buf[0] != c)
        {
-           pfc.fstr("SPRFile::__test() step 5 failed$\n").sa("").pr();
+           pfc.fstr("SPRFile::UnitTest() step 5 failed").pr();
        }
     }
-    for(var int i=0;i<1000;i++)
+    for(var int i=0;i < 1000;i++)
     {
         var char buf[21];
-        f.read(i*20+20,20,buf);
+        var int ret = f.read(i*20+20,20,buf);
         buf[20]='\0';
         var String_16 str(buf);
-        if(str.compare("abcdefghijklmnopqrst")!=0)
+        
+        // pfc.fstr("SPRFile::UnitTest() step 6 DEBUG: $ $").sa(ret).sa(buf).pr();
+        
+        if(str.compare("abcdefghijklmnopqrst") != 1)
         {
-           pfc.fstr("SPRFile::__test() step 6 failed$\n").sa("").pr();
+           pfc.fstr("SPRFile::UnitTest() step 6 failed").pr();
+           return;
         }
     }
+    pfc.pr("SPRFile::UnitTest() erfolgreich\n");
 }
    
    
@@ -765,24 +793,24 @@ void AlphabeticSorter::qsort(String_16* wordlist[],
    while(lower<=upper)
    {
         //scan up
-   	while((lower<=upper) && (this.isAboveOrEqualPivot(wordlist,lower,pivot)<=0) )
-   	{		   
-   	   lower++;		   
-   	}
-   			
-   	//scan down
-   	while((upper >= lower) && (this.isAboveOrEqualPivot(wordlist,upper,pivot)>=0)  )
-   	{
-   	   upper=upper - 1;
-   	}
-   			
-   	if(lower < upper)
-   	{
-   	   //swap
-   	   var String_16* speicher;speicher=wordlist[lower];		   
-   	   wordlist[lower]=wordlist[upper];
-   	   wordlist[upper]=speicher;  		   
-   	}				
+      while((lower<=upper) && (this.isAboveOrEqualPivot(wordlist,lower,pivot)<=0) )
+      {         
+         lower++;         
+      }
+            
+      //scan down
+      while((upper >= lower) && (this.isAboveOrEqualPivot(wordlist,upper,pivot)>=0)  )
+      {
+         upper=upper - 1;
+      }
+            
+      if(lower < upper)
+      {
+         //swap
+         var String_16* speicher;speicher=wordlist[lower];         
+         wordlist[lower]=wordlist[upper];
+         wordlist[upper]=speicher;           
+      }            
    }
    //swap pivot   
    var String_16* temp;
@@ -854,24 +882,24 @@ void AlphabeticSorter::qsort(&int liste[],int lowerBound, int upperBound)
    while(lower<upper)
    {
         //scan up
-   	while((lower<=upper) && (this.elemAt(liste,lower)<=pivot)  )
-   	{
-   	   lower++;		   
-   	}
-   	//scan down
-   	while((upper >= lower) && (this.elemAt(liste,upper)>=pivot)  )
-   	{
-   	   upper=upper - 1;
-   	}
-   			
-   	if(lower < upper)
-   	{
-   	   //swap
-   	   var int speicher=liste[lower];		   
-   	   liste[lower]=liste[upper];
-   	   liste[upper]=speicher;  		              
-   	}				
-   	
+      while((lower<=upper) && (this.elemAt(liste,lower)<=pivot)  )
+      {
+         lower++;         
+      }
+      //scan down
+      while((upper >= lower) && (this.elemAt(liste,upper)>=pivot)  )
+      {
+         upper=upper - 1;
+      }
+            
+      if(lower < upper)
+      {
+         //swap
+         var int speicher=liste[lower];         
+         liste[lower]=liste[upper];
+         liste[upper]=speicher;                      
+      }            
+      
    }
    //swap pivot
    liste[upperBound]=liste[lower];
@@ -945,15 +973,18 @@ longlong SystemTime::getMillisecondCounter()
 {
     var longlong ms;
     inline_cpp[[
-       struct timeval currentTime;
-       gettimeofday(&currentTime, NULL);
-
-       // Extract seconds and microseconds
-       time_t seconds = currentTime.tv_sec;
-       suseconds_t microseconds = currentTime.tv_usec;
-       ms = seconds;
-       ms = ms * 1000;
-       ms = ms + (microseconds / 1000);
+        int iMilliSeconds;
+                #ifdef WIN32_X86
+        _timeb tSysTime;
+        _ftime(&tSysTime);
+                #else
+                 timeb tSysTime;
+                 ftime(&tSysTime);
+                #endif
+        ms = tSysTime.time;
+        iMilliSeconds = tSysTime.millitm;
+        ms *= 1000;
+        ms += iMilliSeconds;
     ]]
     return ms;
 }
@@ -972,6 +1003,7 @@ void CommandlineArgs::getArgument(int idx,&String_16 arg)
    inline_cpp[[
       if(idx>__spr_argv._theObject->_sz)
       {
+         cout << "Command Line Argument " << idx << " does not exist " << endl;
          return;
       }
       else
@@ -982,6 +1014,12 @@ void CommandlineArgs::getArgument(int idx,&String_16 arg)
    ]]
 }
 
+void CommandlineArgs::getArgument(int idx,&int arg)
+{
+    var String_16 strArg;
+    this.getArgument(idx,strArg);
+    arg = strArg.asNumber(); 
+}
 
 
 char SystemConstants::getFileSeparator()
@@ -1018,7 +1056,6 @@ int SystemConstants::isUnix()
    ]]
    return ret; 
 }
-
 
 void HexPrinter::intToHex(int x,&char out[],int startIndex)
 {
@@ -1367,32 +1404,46 @@ void Benutzer_Umschalter::UnitTest()
    }
 }
 
-
 void Umgebung::leseVariable(&String_16 varNameStr,&int erfolg, &String_16 wertStr)
 {
    erfolg = 0;
+   var char varName[81];
+   
+   varNameStr.toCharArray(varName);
+   varName[80] = '\0';
+   
    inline_cpp[[
-       char varName[300];
-       char sp('x');
-       int j=0;
-       while( (j < 299) && ( j < varNameStr.length(&sp) ) ) 
-       { 
-          varName[j] = varNameStr.getAt(&sp,j);
-          j++;
-       }
-       varName[j] = '\\0';
-       const char* wert = getenv(varName);
+       const char* wert = getenv(varName._array);
        if( wert != NULL)
        {
           int i=0;
           while( (i < 1000) && (wert[i] != '\\0') )
           {
+             char sp('X');
              wertStr.append(&sp,wert[i]);
              i++;
-          } 
+          }
           if( i < 1000){ erfolg = 1; }
           else { erfolg = 0; }
        }
    ]]
 }
 
+int Umgebung::leseVariable(&char varName[],&String_16 wertStr)
+{
+   inline_cpp[[
+       const char* wert = getenv(varName._array);
+       if( wert != NULL)
+       {
+          int i=0;
+          while( (i < 1000) && (wert[i] != '\\0') )
+          {
+             char sp('X');
+             wertStr.append(&sp,wert[i]);
+             i++;
+          }
+          if( i < 1000){ return 1; }          
+       }
+   ]]
+   return 0;
+}

@@ -96,9 +96,6 @@ erzeugeGenerischeKlassen()
    m4 Strings.ai.m4 >> Strings.ai
    m4 String.ad.m4 > Strings.ad
 
-   m4 Hashtable.ad.m4 > Hashtable.ad
-   echo "Import { \"Strings.ad\", \"Hashtable.ad\" }" > Hashtables.ai
-   m4 Hashtables.ai.m4 >> Hashtables.ai
 }
 
 ###################################################################################################################

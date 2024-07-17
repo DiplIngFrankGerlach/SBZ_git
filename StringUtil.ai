@@ -2,10 +2,9 @@ Import
 {
    "Strings.ad",
    "System.ad",
-   "StringUtil.ad",
-   "ZKNuetzlich.ad"
+   "ZKNuetzlich.ad",
+   "StringUtil.ad"
 }
-
 
 /*entferne Leerzeichen links und rechts */
 void StringUtil::trim(&String_16 eingabe,&String_16 ausgabe)

@@ -3,7 +3,7 @@ Import
    "Strings.ad",
    "System.ad",
    "CSVLeser.ad",
-   "TCP.ad",
+   "TCP_no_tls.ad",
    "TcpServer.ad",
    "FranksFeistel2.ad",
    "GesicherteVerbindung.ad",
@@ -47,6 +47,7 @@ void Main::leseSchluessel(&String_16 serverUndPort,&int erfolgSchl, &String_16 S
 int Main::main()
 { 
    var int erfolg;
+
    Main::leseLogLevel(debugLevel);
 
    var CommandlineArgs cla;
@@ -156,7 +157,7 @@ int Main::main()
 
    pfc.fstr("Sichere Befehlszeile(sbz), Copyright Frank Gerlach 2024").pr();
    pfc.fstr("Commercial use requires a written license statement from the author").pr();
-   pfc.fstr("Version 2.0").pr();
+   pfc.fstr("Version 2.2").pr();
    pfc.fstr("Benutzung: sbz ((client serverName:port Befehl+ )|(server port))").pr();
    pfc.fstr("Usage 1: sbz \"client\" serverName:port Command+").pr();
    pfc.fstr("Usage 2: sbz \"server\" port").pr();
@@ -172,6 +173,7 @@ void Main::leseLogLevel(&int level)
    var String_16 name("SBZ_DEBUG");
    var String_16 debugWert;
    Umgebung::leseVariable(name,erfolg,debugWert);
+   level = 0;
    if(erfolg == 1)
    {
        level = debugWert.asNumber();

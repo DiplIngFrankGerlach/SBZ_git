@@ -1,4 +1,5 @@
 
+
 class ThreadInfo multithreaded
 {
    
@@ -10,14 +11,8 @@ methods:
    external void  threadMain();
 };
 
-
-/*
-statische Members werden benötigt
-   -Zugriffskontrolle
-   	-Daten
-   	-Methoden
-*/
-
+ 
+/* class for easy and safe printing, similar(but more secure) as printf() in C */
 class PrintfClass 
 {
    String_16 _fstr;
@@ -28,6 +23,7 @@ methods:
    //set the format string
    //arguments are specified using the dollar ($) sign
    &PrintfClass fstr(&char str[]);
+   
    //set a string argument
    &PrintfClass sa(&char str[]);
 
@@ -62,28 +58,30 @@ methods:
    &PrintfClass sa(*char str[]);
    
    &PrintfClass sa(char c);
-
-
-
-   
    
    &PrintfClass saExp(double num);
       
    //actually print the string to the console
    void pr();
+   
+   //print a verbatim string immediately
+   void pr(&char text[]);
+   
    void prNoLF();
    //void threadMain();    
 
+    
    void prHex(char x);
    
    PrintfClass();
 };
 
-
 class Umgebung
 {
 methods:
    static void leseVariable(&String_16 varName,&int erfolg,&String_16 wert);
+	
+	int leseVariable(&char varName[],&String_16 wertStr);
 };
 
 enum SPRFile_Mode { SF_Readonly, SF_ReadWrite, SF_ReadWriteTruncated };
@@ -137,7 +135,7 @@ methods:
    ~SPRFile();
    
    ///INTERNAL TEST METHODS
-   static void __test();
+   static void UnitTest();
 };
 
 
@@ -177,6 +175,7 @@ class CommandlineArgs
 methods:
    int numberOfArguments();
    void getArgument(int idx,&String_16 arg);
+   void getArgument(int idx,&int arg);
 };
 
 class SystemConstants

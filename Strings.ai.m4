@@ -133,17 +133,21 @@ define(StringsImpl,
         }
 
 
-        void String_$1::append(&char str[])
+        void String_$1::append(&char buf[])
         {
              var int groesse=0;
-             while(str[groesse] != '\0')
-             {groesse++;}
+             var int nullGefunden = 0;
+             while((nullGefunden == 0) && ( groesse < buf.sz) )
+             {
+                  if(buf[groesse] == '\0') { nullGefunden = 1; }
+                  else { groesse++; }
+             }
 
              this.ensureCapacity( _length + groesse );
              var int stelle;
              for(stelle = 0; stelle < groesse; stelle++)
              {
-                 this.append(str[stelle]);
+                 this.append(buf[stelle]);
              }
         }
         
@@ -424,13 +428,19 @@ define(StringsImpl,
         void String_$1::append(*char buf[])
         {
              var int groesse=0;
-             while(buf[groesse] != '\0')
-             {groesse++;}
+             var int nullGefunden = 0;
+             while((nullGefunden == 0) && ( groesse < buf.sz) )
+             {
+                  if(buf[groesse] == '\0') { nullGefunden = 1; }
+                  else { groesse++; }
+             }
+             //inline_cpp[[ cout << "groesse: " << groesse << endl;  ]]
 
              this.ensureCapacity( _length + groesse );
              var int stelle;
              for(stelle = 0; stelle < groesse; stelle++)
              {
+                 //inline_cpp[[ cout << "stelle: " << stelle << endl;  ]]
                  this.append(buf[stelle]);
              }
         }
