@@ -36,7 +36,7 @@ $ ./sbz client meinServer.de:8111  "ps -ef"
 ```
 
 ## Uebersetzer
-Es wird der Sappeur Compiler Ausgabe 4.1 oder hoeher benoetigt.
+Es wird der Sappeur Compiler Ausgabe 4.1 oder hoeher benoetigt. Siehe https://sappeur.di-fg.de.
 
 ## Quelle
 SBZ wurde von Dipl. Ing. Frank Gerlach (http://di-fg.de) in Brackenheim, Württemberg, Deutschland entwickelt.
